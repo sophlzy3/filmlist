@@ -3,12 +3,23 @@
 # Navigate to the repository directory
 cd /Users/sophie/Downloads/github-list-project || exit
 
-echo "Current directory: $(pwd)"
-echo "Listing files:"
-ls -l
+# Add any new or modified files
+git add .
+
+# Check for any changes to commit
+if ! git diff-index --quiet HEAD --; then
+  # Commit changes with a timestamp
+  git commit -m "Commit at $(date '+%Y-%m-%d %H:%M:%S')"
+fi
+
+# Push committed changes
+git push origin main
+
+# =============================
+# Stash any remaining changes
+git stash -u
 
 # Pull changes from the remote repository
-echo "Pulling changes from remote..."
 git pull origin main --rebase
 
 # Check for any merge conflicts or errors
@@ -17,18 +28,10 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Add any new or modified files
-echo "Adding changes..."
-git add .
+# Apply the stashed changes
+git stash pop
 
-# Commit changes if there are any
-if git diff-index --quiet HEAD --; then
-  echo "No changes to commit"
-else
-  echo "Committing changes..."
-  git commit -m "Automated commit message"
-fi
-
+# =============================
 # Push changes to the remote repository
 echo "Pushing changes to remote..."
 git push origin main
