@@ -429,7 +429,8 @@ struct FilmDetailPage_Previews: PreviewProvider {
                         job:"nil",
                         original_name: "Nicole Kidman",
                         profile_path:"/m56BJJsW3uynaZDwtFCFeoDgH5o.jpg",
-                        character: "Grace Margaret Mulligan"
+                        character: "Grace Margaret Mulligan",
+                        known_for_department: "Acting"
                     ),
                     Preview_people(
                         id: 7569,
@@ -437,7 +438,8 @@ struct FilmDetailPage_Previews: PreviewProvider {
                         job:"nil",
                         original_name: "Harriet Andersson",
                         profile_path:"/rFQNqEAyzAw5XAMeVPFZlcveNgF.jpg",
-                        character: "Gloria"
+                        character: "Gloria",
+                        known_for_department: "Acting"
                     ),
                     Preview_people(
                         id: 7570,
@@ -445,8 +447,8 @@ struct FilmDetailPage_Previews: PreviewProvider {
                         job:"nil",
                         original_name: "Lauren Bacall",
                         profile_path:"/lpzzFF8cDAE9Lm5THFlUbDATaOn.jpg",
-//                        profile_path:nil,
-                        character: "Ma Ginger"
+                        character: "Ma Ginger",
+                        known_for_department: "Acting"
                     ),
 
                 ],
@@ -457,7 +459,8 @@ struct FilmDetailPage_Previews: PreviewProvider {
                         job: "Screenplay",
                         original_name: "Lars von Trier",
                         profile_path: "/vyLqx52Fj5E5wN6gqJtqOyWIfa6.jpg",
-                        character:nil
+                        character:nil,
+                        known_for_department: "Directing"
                     ),
                     Preview_people(
                         id: 42,
@@ -465,7 +468,8 @@ struct FilmDetailPage_Previews: PreviewProvider {
                         job: "Director",
                         original_name: "Lars von Trier",
                         profile_path: "/vyLqx52Fj5E5wN6gqJtqOyWIfa6.jpg",
-                        character:nil
+                        character:nil,
+                        known_for_department: "Directing"
                     ),
                     Preview_people(
                         id: 42,
@@ -473,7 +477,8 @@ struct FilmDetailPage_Previews: PreviewProvider {
                         job: "Director",
                         original_name: "Lars von Trier2",
                         profile_path: "/vyLqx52Fj5E5wN6gqJtqOyWIfa6.jpg",
-                        character:nil
+                        character:nil,
+                        known_for_department: "Directing"
                     ),
                     Preview_people(
                         id: 42,
@@ -481,7 +486,8 @@ struct FilmDetailPage_Previews: PreviewProvider {
                         job: "Director",
                         original_name: "Lar von Trier3",
                         profile_path: "/vyLqx52Fj5E5wN6gqJtqOyWIfa6.jpg",
-                        character:nil
+                        character:nil,
+                        known_for_department: "Directing"
                     )
                 ]
             )

@@ -28,8 +28,8 @@ class DatabaseManager {
                 
                 // eq, neq, gt, gte, lt, lte, like, ilike, is, in, cs, cd, sl, sr, nxl, nxr, adj, ov, fts, plfts, phfts, wfts
                 //  like, ilike, is, in, cs, cd, sl, sr, nxl, nxr, adj, ov, fts, plfts, phfts, wfts
-
-
+                
+                
                 switch conditionOperator {
                 case "eq":
                     query = query.eq(field, value: value)
@@ -60,8 +60,11 @@ class DatabaseManager {
         return query
     }
     
-//    try await DatabaseManager.shared.createItem(col: "movies", item: movie)
-    func createItem<T: Encodable>(database: String, item: T) async throws {
+    //    try await DatabaseManager.shared.insertItem(col: "movies", item: movie)
+    func insertItem(
+        database: String,
+        item: Encodable
+    ) async throws {
         do {
             try await client.database.from(database).insert(item).execute()
         } catch {
@@ -69,16 +72,49 @@ class DatabaseManager {
             throw error
         }
     }
-
-//    try await DatabaseManager.shared.fetchItem(database: "movies", ofType: Data_film.self, conditions: [("eq", "id", movieID)])
+    
+    func updateItem(
+        database: String,
+        conditions: [(String, String, URLQueryRepresentable)]? = [],
+        newValue: Codable
+    ) async throws {
+        do {
+            var query = try await client.database.from(database).update(newValue)
+            query = try await addConditions(inputQuery: query, conditions: conditions)
+            try await query.execute()
+        } catch {
+            print("ERROR IN UPDATING ITEM\n=================")
+            throw error
+        }
+    }
+    
+    func upsertItem(
+        database: String,
+        item: Codable,
+        onConflict: String?
+    ) async throws {
+        do {
+            //            var query = try await client.database.from(database).upsert(item)
+            if onConflict == nil {
+                try await client.database.from(database).upsert(item).execute()
+            } else {
+                try await client.database.from(database).upsert(item, onConflict: onConflict).execute()
+            }
+        } catch {
+            print("ERROR IN UPSERTING ITEM\n=================")
+            throw error
+        }
+    }
+    
+    //    try await DatabaseManager.shared.fetchItem(database: "movies", ofType: Data_film.self, conditions: [("eq", "id", movieID)])
     func fetchItem<T: Decodable>(
         database: String,
         ofType type: T.Type,
         conditions: [(String, String, URLQueryRepresentable)]? = []
-    ) async throws -> [T] 
+    ) async throws -> [T]
     {
         do {
-            var query = try await client.database.from(database).select()
+            var query = await client.database.from(database).select()
             query = try await addConditions(inputQuery: query, conditions: conditions)
             let response = try await query.execute()
             
@@ -92,26 +128,22 @@ class DatabaseManager {
         }
     }
     
-    func updateItem<T: Codable, U: URLQueryRepresentable>(database: String, conditions: [(String, String, U)], newValue: [String: T]) async throws {
+    func deleteItems(
+        database: String,
+        conditions: [(String, String, URLQueryRepresentable)]? = []
+    ) async throws {
         do {
-            var query = try await client.database.from(database).update(newValue)
+            var query = await client.database.from(database).delete()
             query = try await addConditions(inputQuery: query, conditions: conditions)
-            let response = try await query.execute()
-        } catch {
-            print("ERROR IN UPDATING ITEM=================\n\(error)")
-            throw error
-        }
-    }
-
-    func deleteItems<U: URLQueryRepresentable>(database: String, conditions: [(String, String, U)]) async throws {
-        do {
-            var query = try await client.database.from(database).delete()
-            query = try await addConditions(inputQuery: query, conditions: conditions)
-            let response = try await query.execute()
+            try await query.execute()
         } catch {
             print("ERROR IN DELETING ITEM=================\n\(error)")
             throw error
         }
+    }
+    
+    func upsertConstrained() {
+        
     }
 }
 
@@ -127,7 +159,7 @@ class SupabaseActions {
         client = SupabaseClient(supabaseURL: URL(string: SupabaseVar.shared.supabaseURL)!, supabaseKey: SupabaseVar.shared.apiPublic)
     }
     
-    func addMovieDetails(id: Int) async throws {
+    func addMovieDetails(id: Int, filmPreview: ReturnedMovie) async throws {
         do {
             // Fetch movie preview
             print("adding movie details ...")
@@ -146,74 +178,48 @@ class SupabaseActions {
                 runtime: movieResult.runtime,
                 vote_average: movieResult.vote_average)
                         
-            try await DatabaseManager.shared.createItem(database: "movies", item: movie)
+            try await DatabaseManager.shared.insertItem(database: "movies", item: movie)
+            try await DatabaseManager.shared.insertItem(database: "movies_preview", item: filmPreview)
+
             
             // add genre
             for genre in movieResult.genres {
-                // add company to library if NOT present
-                let isGenreInLibrary = try await DatabaseManager.shared.fetchItem(database: "genres", ofType: Preview_genre.self, conditions: [("eq", "id", genre.id)])
-//
-                if isGenreInLibrary == [] { // empty if not in library
-                    try await DatabaseManager.shared.createItem(database: "genres", item: genre)
-//                    print("\(genre.name) added to lib")
-                } else {
-//                    print("\(genre.name) already in lib")
-                }
+                // add genre to library if NOT present
+                try await DatabaseManager.shared.upsertItem(database: "genres", item: genre, onConflict: "id")
 //
                 // create relationship instance and add
                 let relMovieGenre = Rel_movie_genre(movie_id: movieResult.id, genre_id: genre.id)
-                try await DatabaseManager.shared.createItem(database: "movie_genre", item: relMovieGenre)
+                try await DatabaseManager.shared.insertItem(database: "movie_genre", item: relMovieGenre)
             }
             
             // add company
             for company in movieResult.production_companies {
                 // add company to library if NOT present
-                let isCompanyInLibrary = try await DatabaseManager.shared.fetchItem(database: "companies", ofType: Preview_company.self, conditions: [("eq", "id", company.id)])
-//
-                if isCompanyInLibrary == [] { // empty if not in library
-                    try await DatabaseManager.shared.createItem(database: "companies", item: company)
-//                    print("\(country.name) added to lib")
-                } else {
-//                    print("\(country.name) already in lib")
-                }
-//
+                try await DatabaseManager.shared.upsertItem(database: "companies", item: company, onConflict: "id")
+
                 // create relationship instance and add
                 let relMovieCompany = Rel_movie_company(movie_id: movieResult.id,company_id: company.id)
-                try await DatabaseManager.shared.createItem(database: "movie_company", item: relMovieCompany)
+                try await DatabaseManager.shared.insertItem(database: "movie_company", item: relMovieCompany)
             }
             
             // add country
             for country in movieResult.production_countries {
                 // add country to library if NOT present
-                let isCountryInLibrary = try await DatabaseManager.shared.fetchItem(database: "countries", ofType: Preview_country.self, conditions: [("eq", "iso_3166_1", country.iso_3166_1)])
-                
-                if isCountryInLibrary == [] {
-                    try await DatabaseManager.shared.createItem(database: "countries", item: country)
-//                    print("\(country.name) added to lib")
-                } else {
-//                    print("\(country.name) already in lib")
-                }
+                try await DatabaseManager.shared.upsertItem(database: "countries", item: country, onConflict: "iso_3166_1")
 
 //                create relationship instance and add
                 let relMovieCountry = Rel_movie_country(movie_id: movieResult.id,country_iso: country.iso_3166_1)
-                try await DatabaseManager.shared.createItem(database: "movie_country", item: relMovieCountry)
+                try await DatabaseManager.shared.insertItem(database: "movie_country", item: relMovieCountry)
             }
             
             // add language
             for language in movieResult.spoken_languages {
                 // add country to library if NOT present
-                let isLanguageInLibrary = try await DatabaseManager.shared.fetchItem(database: "languages", ofType: Preview_language.self, conditions: [("eq", "iso_639_1", language.iso_639_1)])
-                
-                if isLanguageInLibrary == [] {
-                    try await DatabaseManager.shared.createItem(database: "languages", item: language)
-                    // print("\(languages.english_name) added to lib")
-                } else {
-                    // print("\(languages.english_name) already in lib")
-                }
+                try await DatabaseManager.shared.upsertItem(database: "languages", item: language, onConflict: "iso_639_1")
 
                 // create relationship instance and add
                 let relMovieLanguage = Rel_movie_language(movie_id: movieResult.id, language_iso: language.iso_639_1)
-                try await DatabaseManager.shared.createItem(database: "movie_language", item: relMovieLanguage)
+                try await DatabaseManager.shared.insertItem(database: "movie_language", item: relMovieLanguage)
             }
 
 //            return 201
@@ -232,16 +238,9 @@ class SupabaseActions {
 //            print(peopleResult.cast[1])
 
             for person in peopleResult.cast {
-                // add company to library if NOT present
-
-                let isPersonInLibrary = try await DatabaseManager.shared.fetchItem(database: "people", ofType: Data_people.self, conditions: [("eq", "id", person.id)])
-
-                if isPersonInLibrary.isEmpty { // empty if not in library
-                    let add_to_people = Data_people(id: person.id, original_name: person.original_name, profile_path: person.profile_path)
-
-                    try await DatabaseManager.shared.createItem(database: "people", item: add_to_people)
-//                    print("Added person to library: \(personResponse)")
-                }
+                // add cast to library if NOT present
+                let add_to_people = Data_people(id: person.id, original_name: person.original_name, profile_path: person.profile_path, known_for_department: person.known_for_department)
+                try await DatabaseManager.shared.upsertItem(database: "people", item: add_to_people, onConflict: "id")
 
 //                 create relationship instance and add
                 let relMovieCast = Rel_movie_person(
@@ -251,23 +250,16 @@ class SupabaseActions {
                     character: person.character ?? "",
                     department: person.department ?? ""
                     )
-                try await DatabaseManager.shared.createItem(database: "movie_person", item: relMovieCast)
+                try await DatabaseManager.shared.insertItem(database: "movie_person", item: relMovieCast)
             }
             print("cast finished")
 
             for person in peopleResult.crew {
-//                print(person)
-
-                // add company to library if NOT present
-                let isPersonInLibrary = try await DatabaseManager.shared.fetchItem(database: "people", ofType: Data_people.self, conditions: [("eq", "id", person.id)])
-
-                if isPersonInLibrary == [] { // empty if not in library
-                    let add_to_people = Data_people(id: person.id, original_name: person.original_name, profile_path: person.profile_path)
-                    try await DatabaseManager.shared.createItem(database: "people", item: add_to_people)
-                }
+                // add crew to library if NOT present
+                let add_to_people = Data_people(id: person.id, original_name: person.original_name, profile_path: person.profile_path, known_for_department: person.known_for_department)
+                try await DatabaseManager.shared.upsertItem(database: "people", item: add_to_people, onConflict: "id")
 
                 // create relationship instance and add
-
                 let relMovieCrew = Rel_movie_person(
                     movie_id: id,
                     person_id: person.id,
@@ -276,23 +268,12 @@ class SupabaseActions {
 //                    known_for_department: person.known_for_department,
                     department: person.department ?? ""
                     )
-                try await DatabaseManager.shared.createItem(database: "movie_person", item: relMovieCrew)
+                try await DatabaseManager.shared.insertItem(database: "movie_person", item: relMovieCrew)
             }
 
             print("crew finished")
             return 201
         } catch {
-            throw error
-        }
-    }
-    
-    func addMovieNote(movie_id: Int, list_id: Int, note: String) async throws {
-        do {
-            let movie_list = Rel_movie_list(movie_id: movie_id, list_id: list_id, note: note)
-            try await DatabaseManager.shared.createItem(database: "movie_list", item: movie_list)
-            
-        } catch {
-            print(error)
             throw error
         }
     }
@@ -318,16 +299,13 @@ class SupabaseActions {
             throw error
         }
     }
-        
-    func changeMovieNote(newNote: String, listID: Int, movieID: Int) async throws {
+    
+    func upsertMovieNote(note: String, listID: Int, movieID: Int) async throws {
         do {
-            try await DatabaseManager.shared.updateItem(
-                database: "movie_list",
-                conditions: [("eq", "list_id", listID), ("eq", "movie_id", movieID)],
-                newValue: ["note": newNote]
-            )
+            let movie_list = Rel_movie_list(movie_id: movieID, list_id: listID, note: note)
+            try await DatabaseManager.shared.upsertItem(database: "movie_list", item: movie_list, onConflict: "movie_id, list_id")
         } catch {
-            print("Update failed: \(error)")
+            throw error
         }
     }
     

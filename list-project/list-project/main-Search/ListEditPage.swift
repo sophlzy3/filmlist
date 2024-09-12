@@ -32,33 +32,36 @@ struct RowListDetails: View {
     var movieID: Int
     var list: Data_list
     var connection: [Rel_movie_list]
-    var imageWidth: CGFloat = 80
-    var imageHeight: CGFloat = 60
+//    var imageHeight: CGFloat = 60
+
+    let connect: Rel_movie_list?
+    @State private var imageSize: CGFloat = 60
     @State private var textFieldContent: String = ""
     @State private var isChecked: Bool = false
     @FocusState private var isTextFieldFocused: Bool
     @State private var showAlert = false
-    
-    
+
     init(list: Data_list, connection: [Rel_movie_list], movieID: Int) {
         self.list = list
         self.connection = connection
         self.movieID = movieID
-        if let connect = connection.first(where: { $0.list_id == list.id }) {
+        self.connect = connection.first(where: { $0.list_id == list.id })
+        
+        if let connect = self.connect {
             _isChecked = State(initialValue: true)
             _textFieldContent = State(initialValue: connect.note)
         }
     }
     
     var body: some View {
-        HStack (alignment: .top) {
+        HStack (alignment: .center) {
             // List Cover
             if !list.cover.isEmpty, let imgURL = URL(string: list.cover) {
                 AsyncImage(url: imgURL) { image in
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fill)
-                        .frame(width: imageHeight, height: imageHeight)
+                        .frame(width: imageSize, height: imageSize)
                         .clipped()
                         .cornerRadius(7)
                 } placeholder: {
@@ -67,7 +70,7 @@ struct RowListDetails: View {
             } else {
                 Rectangle()
                     .fill(Color.gray.opacity(0.3))
-                    .frame(width: imageHeight, height: imageHeight)
+                    .frame(width: imageSize, height: imageSize)
             }
             
             VStack(alignment: .leading) {
@@ -102,28 +105,22 @@ struct RowListDetails: View {
                             .frame(width: 20, height: 20)
                     }
                 })
-                
-                
-                if let connect = connection.first(where: { $0.list_id == list.id }) {
-                    TextField("Note", text: $textFieldContent)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: .infinity)
-                        .focused($isTextFieldFocused)
-                        .onAppear {
-                            textFieldContent = connect.note
+                     
+                TextField(connect?.note ?? "Click to add note", text: $textFieldContent)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: .infinity)
+                    .focused($isTextFieldFocused)
+                    .onAppear {
+                        if let note = connect?.note {
+                            textFieldContent = note
                         }
-                        .onChange(of: textFieldContent) { newContent in
-                            editNote(note: newContent, list_id: connect.list_id, movie_id: connect.movie_id)
-                        }
-                } else {
-                    TextField("Click to add note", text: $textFieldContent)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: .infinity)
-                        .focused($isTextFieldFocused)
-                        .onChange(of: textFieldContent) { newContent in
-                            createNewNote(movie_id: movieID, list_id: list.id, note: newContent)
-                        }
-                }
+                    }
+                    .onChange(of: textFieldContent) { newContent in
+                        let listID = connect?.list_id ?? list.id
+                        let movieID = connect?.movie_id ?? movieID
+                        isChecked = true
+                        upsertNote(note: newContent, list_id: listID, movie_id: movieID)
+                    }
             }
             .padding()
             .alert("Remove from list?", isPresented: $showAlert) {
@@ -131,6 +128,16 @@ struct RowListDetails: View {
                 Button("Yes", role: .destructive) { }
             } message: {
                 Text("This is an alert message.")
+            }
+        }
+    }
+    
+    func upsertNote(note: String, list_id: Int, movie_id: Int) {
+        Task {
+            do {
+                try await SupabaseActions().upsertMovieNote(note: note, listID: list_id, movieID: movie_id)
+            } catch {
+                print(error)
             }
         }
     }
@@ -147,36 +154,7 @@ struct RowListDetails: View {
         print("Unchecked action performed")
     }
     
-    func editNote(note: String, list_id: Int, movie_id: Int) {
-        Task {
-            do {
-                try await SupabaseActions().changeMovieNote(newNote: note, listID: list_id, movieID: movie_id)
-            } catch {
-                print(error)
-            }
-        }
-    }
     
-    func createNewNote(movie_id: Int, list_id: Int, note: String) {
-        Task {
-            do {
-                isChecked = true
-//                find and delete all existing connections if they exist
-                let response = try await DatabaseManager.shared.fetchItem(database: "movie_list", ofType: Rel_movie_list.self, conditions: [("eq", "movie_id", movie_id), ("eq", "list_id", list_id)])
-                if !response.isEmpty {
-                    try await DatabaseManager.shared.deleteItems(database: "movie_list", conditions: [("eq", "movie_id", movie_id), ("eq", "list_id", list_id)])
-
-                }
-                
-//                add new note
-                try await SupabaseActions().addMovieNote(movie_id: movie_id, list_id: list_id, note: note)
-
-                
-            } catch {
-                print(error)
-            }
-        }
-    }
 }
 
 struct ListEditPage_Previews: PreviewProvider {

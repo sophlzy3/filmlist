@@ -84,7 +84,7 @@ struct ButtonRow: View {
                     toastType = .loading
                 }
                 
-                try await SupabaseActions().addMovieDetails(id: movie.id)
+                try await SupabaseActions().addMovieDetails(id: movie.id, filmPreview: movie)
                 
                 DispatchQueue.main.async {
                     toastMessage = "Movie Added"

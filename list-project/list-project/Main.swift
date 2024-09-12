@@ -9,22 +9,27 @@ import SwiftUI
 
 struct Main: View {
     @EnvironmentObject var preferences: Preferences
-    @State private var selectedTab = 0
+    @State private var selectedTab = "search"
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            
             LibraryMain()
+                .tag("library")
                 .tabItem {
                     Label("Library", systemImage: "film.stack")
                 }
-                .tag(1)
             
             SearchView()
+                .tag("search")
                 .tabItem {
                     Label("Search", systemImage: "magnifyingglass")
                 }
-                .tag(0)
+            
+            Settings()
+                .tag("setting")
+                .tabItem {
+                    Label("Settings", systemImage: "gear")
+                }
         }
 //        .foregroundColor(preferences.accentColor)
     }

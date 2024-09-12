@@ -10,6 +10,7 @@ import CoreData
 
 class Preferences: ObservableObject {
     @Published var accentColor: Color = .cyan
+//    @Published var viewOption: String = "list"
 }
 
 class SearchVar: ObservableObject {
@@ -28,6 +29,38 @@ class MainVar: ObservableObject {
     @Published var libActivated: Bool = false
     @Published var searchColor: Bool = true
 }
+
+enum LibraryItem: String, CaseIterable {
+    case people = "People"
+    case countries = "Countries"
+    case companies = "Companies"
+    case genres = "Genres"
+    case titles = "Titles"
+    case lists = "Lists"
+    
+    var iconName: String {
+        switch self {
+        case .people: return "person.fill"
+        case .countries: return "mappin.and.ellipse"
+        case .companies: return "building.2.fill"
+        case .genres: return "theatermasks.fill"
+        case .titles: return "film"
+        case .lists: return "list.bullet"
+        }
+    }
+    
+    var database: String {
+        switch self {
+        case .people: return "people"
+        case .countries: return "countries"
+        case .companies: return "companies"
+        case .genres: return "genres"
+        case .titles: return "titles"
+        case .lists: return "lists"
+        }
+    }
+}
+
 
 class SupabaseVar: ObservableObject {
     static let shared = SupabaseVar()

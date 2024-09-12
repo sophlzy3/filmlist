@@ -80,3 +80,36 @@ struct MovieResultList: View {
         }
     }
 }
+
+
+struct MovieResultList_Previews: PreviewProvider {
+    static var previews: some View {
+        // Sample data for preview
+        let sampleMovies: [ReturnedMovie] = [
+            ReturnedMovie(
+                id: 1,
+                title: "Inception",
+                backdrop_path: "/s3TBrRGB1iav7gFOCNx3H31MoES.jpg",
+                poster_path: "/qmDpIHrmpJINaRKAfWQfftjCdyi.jpg",
+                release_date: "2010-07-16",
+                genre_ids: [28, 12, 878],
+                original_language: "en",
+                overview: "A skilled thief is offered a chance to erase his past crimes in exchange for infiltrating the mind of a CEO."
+            ),
+            ReturnedMovie(
+                id: 2,
+                title: "Interstellar",
+                backdrop_path: "/rAiYTfKGqDCRIIqo664sY9XZIvQ.jpg",
+                poster_path: "/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+                release_date: "2014-11-05",
+                genre_ids: [12, 878],
+                original_language: "en",
+                overview: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival."
+            )
+        ]
+        
+        return MovieResultList(movie_list: sampleMovies)
+            .environmentObject(SearchVar())
+    }
+}
+

@@ -16,8 +16,8 @@ struct MovieSearchResult: Codable {
 }
 
 // for movie preview wwblock
-struct ReturnedMovie: Codable, Hashable, Equatable { // block preview
-    var id: Int
+struct ReturnedMovie: Identifiable, Codable, Hashable, Equatable {
+    let id: Int
     let title: String
     let backdrop_path: String?
     let poster_path: String?
@@ -25,21 +25,14 @@ struct ReturnedMovie: Codable, Hashable, Equatable { // block preview
     let genre_ids: [Int]
     let original_language: String
     let overview: String?
-
+    
+    // Hashing function
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
         hasher.combine(title)
         hasher.combine(backdrop_path)
         hasher.combine(release_date)
         hasher.combine(genre_ids)
-    }
-
-    static func == (lhs: ReturnedMovie, rhs: ReturnedMovie) -> Bool {
-        return lhs.id == rhs.id
-            && lhs.title == rhs.title
-            && lhs.backdrop_path == rhs.backdrop_path
-            && lhs.release_date == rhs.release_date
-            && lhs.genre_ids == rhs.genre_ids
     }
 }
 
@@ -120,12 +113,14 @@ struct Preview_people: Codable, Identifiable, Equatable {
     let original_name: String
     let profile_path: String?
     let character: String?
-    }
+    let known_for_department: String?
+}
 
 struct Data_people: Codable, Equatable {
     let id: Int
     let original_name: String
     let profile_path: String?
+    let known_for_department: String?
 }
 
 struct Data_list: Codable, Equatable, Identifiable {
@@ -145,7 +140,6 @@ struct Rel_movie_person: Codable {
     let person_id: Int
     let job: String?
     let character: String?
-//    let known_for_department: String
     let department: String?
 }
 
