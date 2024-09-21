@@ -9,7 +9,6 @@ import SwiftUI
 
 struct SearchView: View {
     @EnvironmentObject var searchvar: SearchVar
-
     var body: some View {
         ScrollView {
             VStack {
@@ -45,6 +44,10 @@ struct SearchBar: View {
                     
                     if searchvar.ButtonPosition == false {
                         TextField("Search TMDB Database",text: $searchvar.SearchText, onCommit: searchMovie)
+                            .onChange(of: searchvar.SearchText) { newValue in
+                                searchvar.SearchText = newValue // Corrected reference to searchvar
+                            }
+                            
                     } else {
                         TextField("Search in Library",text: $searchvar.SearchText)
                     }
@@ -58,6 +61,7 @@ struct SearchBar: View {
                     }}
             }
             .frame(width:.infinity,height:40)
+            
             
             Text("Cancel")
                 .padding(EdgeInsets(top:10, leading: 0, bottom: 10, trailing: 0))

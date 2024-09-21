@@ -15,7 +15,6 @@ class Preferences: ObservableObject {
 
 class SearchVar: ObservableObject {
     @Published var SearchText: String = "Pulp Fiction"
-//    Batman: The Animated Series
     @Published var ButtonPosition: Bool = false
     @Published var optionChoice: String = "Title"
     @Published var optionColor: Color = .cyan

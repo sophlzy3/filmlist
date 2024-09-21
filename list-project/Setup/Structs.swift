@@ -116,7 +116,7 @@ struct Preview_people: Codable, Identifiable, Equatable {
     let known_for_department: String?
 }
 
-struct Data_people: Codable, Equatable {
+struct Data_people: Codable, Equatable, Identifiable {
     let id: Int
     let original_name: String
     let profile_path: String?
