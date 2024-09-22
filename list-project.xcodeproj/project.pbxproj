@@ -79,7 +79,7 @@
 		E4897DE42A57A1890075AB2C /* AwardsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwardsPage.swift; sourceTree = "<group>"; };
 		E4897DE82A57BC5C0075AB2C /* SimilarPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPage.swift; sourceTree = "<group>"; };
 		E48E37692C4A23DF00F8AFA1 /* function_test.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = function_test.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		E4B6BCAD2A848DCC00CE806E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = "list-project/README.md"; sourceTree = "<group>"; };
+		E4B6BCAD2A848DCC00CE806E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		E4BE9F0B2A5609D700D9FFCB /* FilmPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilmPage.swift; sourceTree = "<group>"; };
 		E4BE9F0F2A5614C800D9FFCB /* PeoplePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeoplePage.swift; sourceTree = "<group>"; };
 		E4C9A5162A6542940018DCC2 /* SearchFinal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFinal.swift; sourceTree = "<group>"; };

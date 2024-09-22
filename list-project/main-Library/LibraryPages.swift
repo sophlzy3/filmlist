@@ -12,23 +12,38 @@ import Foundation
 struct LazyGridPage<Item: Identifiable, Content: View>: View {
     var list: [Item]
     let content: (Item) -> Content
+    let alignment: HorizontalAlignment = .center // Can be passed as parameter
+
     
-    let columns = [GridItem(.adaptive(minimum: 150))]
+    var columns: [GridItem] {
+        let screenWidth = UIScreen.main.bounds.width
+        var itemWidth: CGFloat
+        
+        if list.first is Data_people {
+            itemWidth = 300  // Width for GridPerson items
+        } else if list.first is ReturnedMovie {
+            //            itemWidth = screenWidth - 40  // Full screen width for GridFilm items
+            itemWidth = 200
+        } else {
+            itemWidth = 150  // Default width
+        }
+        
+        let numberOfColumns = max(Int(screenWidth / itemWidth), 1) // Ensure at least 1 column
+        return Array(repeating: GridItem(.flexible(minimum: itemWidth)), count: numberOfColumns)
+    }
     
     var body: some View {
-        ScrollView {
-            LazyVGrid(columns: columns, spacing: 20) {
-                ForEach(list) { item in
-                    content(item)  // Construct the view using the closure
-                        .frame(minWidth: 150, maxWidth: .infinity, alignment: .leading)
-                        .padding(5)
-                }
+        LazyVGrid(columns: columns, spacing: 20) {
+            ForEach(list) { item in
+                content(item)  // Construct the view using the closure
+//                    .frame(minWidth: 150, maxWidth: .infinity, alignment: .leading)
+                    .padding(5)
             }
-            .padding()
         }
-        .navigationTitle("Lists")
+        .frame(maxWidth: .infinity)
     }
 }
+
 
 struct GridList: View {
     var imageSize: CGFloat = 150
@@ -57,7 +72,6 @@ struct GridList: View {
                 .frame(maxWidth: imageSize)
                 .multilineTextAlignment(.center)
         }
-        .navigationTitle("Lists")
     }
 }
 
@@ -74,6 +88,7 @@ struct GridPerson: View {
                         .aspectRatio(contentMode: .fill)
                         .frame(width: imageSize, height: imageSize)
                         .clipped()
+                        .clipShape(Circle())
                         .cornerRadius(7)
                 } placeholder: {
                     ProgressView()
@@ -93,42 +108,106 @@ struct GridPerson: View {
 }
 
 struct GridFilm: View {
-//    @State private var originalFrameSize: CGSize?
-    var frameWidth: CGFloat = 350
+    var aspectRatio: CGFloat = 16.0 / 9.0
     var film: ReturnedMovie
+    
     var descriptionString: String {
         let releaseYear = film.release_date?.prefix(4) ?? "Date Unknown"
-        
-        var genreString: String {
-            let genreNames = film.genre_ids.compactMap { genreIDs[$0] }
-            
-            if genreNames.isEmpty {
-                return "No genre"
-            } else if genreNames.count <= 2 {
-                return genreNames.joined(separator: "/")
-            } else {
-                return genreNames.prefix(2).joined(separator: "/")
-            }
-        }
-        
-        // Define englishName outside the conditional to use it later
-        var englishName = "Unknown"
-        
-        // Assuming languageIDs is defined as [String: [String: String]]
-        if let languageInfo = languageIDs[film.original_language] {
-            englishName = languageInfo["english_name"] ?? "Unknown"
-        }
-        
+        let genreNames = film.genre_ids.compactMap { genreIDs[$0] }
+        let genreString = genreNames.isEmpty ? "No genre" : genreNames.prefix(2).joined(separator: "/")
+        let englishName = languageIDs[film.original_language]?["english_name"] ?? "Unknown"
         return "\(releaseYear) • \(genreString) • \(englishName)"
     }
 
     var body: some View {
-        HStack {
-            Text(film.title)
-            Text(descriptionString)
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            let height = width / aspectRatio // Maintain the aspect ratio
+            let imageURL = URL(string: "https://image.tmdb.org/t/p/original/" + (film.backdrop_path ?? ""))!
+            
+            ZStack(alignment: .bottomLeading) {
+                // Background Image
+                AsyncImage(url: imageURL) { phase in
+                    switch phase {
+                    case .empty:
+                        ProgressView()
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: width, height: height) // Match the frame to the calculated size
+                            .clipped()
+                    case .failure:
+                        Color(UIColor.systemGray3)
+                    @unknown default:
+                        Color(UIColor.systemGray3)
+                    }
+                }
+
+                // Overlay Rectangle
+                Rectangle()
+                    .fill(Color.black.opacity(0.25))
+                    .frame(width: width, height: height) // Match the frame to the calculated size
+                
+                // Text Content
+                VStack(alignment: .leading) {
+                    Text(film.title)
+                        .foregroundColor(.white)
+                        .font(.system(size: width * 0.08)) // Dynamic font size
+                        .fontWeight(.bold)
+                        .lineLimit(2)
+                        .truncationMode(.tail)
+                        .minimumScaleFactor(0.5)
+                    
+                    Spacer()
+                        .frame(height: width * 0.04) // Adjust based on the dynamic size
+                    
+                    Text(descriptionString)
+                        .foregroundColor(.white)
+                        .font(.system(size: width * 0.05)) // Dynamic font size for description
+                        .fontWeight(.bold)
+                        .minimumScaleFactor(0.5)
+                }
+                .padding(EdgeInsets(top: 40, leading: 20, bottom: 30, trailing: 40))
+            }
+            .aspectRatio(aspectRatio, contentMode: .fit) // Maintain the aspect ratio for the entire ZStack
+            .frame(maxWidth: .infinity) // Ensure it uses the full width
         }
-        .frame(width: 350)
     }
+}
+
+
+//struct GridFilm: View {
+////    @State private var originalFrameSize: CGSize?
+////    var frameWidth: CGFloat = 350
+//    var aspectRatio: CGFloat = 16.0 / 9.0
+//    var film: ReturnedMovie
+//    var descriptionString: String {
+//        let releaseYear = film.release_date?.prefix(4) ?? "Date Unknown"
+//        
+//        var genreString: String {
+//            let genreNames = film.genre_ids.compactMap { genreIDs[$0] }
+//            
+//            if genreNames.isEmpty {
+//                return "No genre"
+//            } else if genreNames.count <= 2 {
+//                return genreNames.joined(separator: "/")
+//            } else {
+//                return genreNames.prefix(2).joined(separator: "/")
+//            }
+//        }
+//        // Define englishName outside the conditional to use it later
+//        var englishName = "Unknown"
+//        
+//        // Assuming languageIDs is defined as [String: [String: String]]
+//        if let languageInfo = languageIDs[film.original_language] {
+//            englishName = languageInfo["english_name"] ?? "Unknown"
+//        }
+//        
+//        return "\(releaseYear) • \(genreString) • \(englishName)"
+//    }
+//
+//    var body: some View {
 //        let imageURL = URL(string: "https://image.tmdb.org/t/p/original/" + (film.backdrop_path ?? ""))!
 //        ZStack (alignment: .bottomLeading){
 //            AsyncImage(url: imageURL) { phase in
@@ -145,14 +224,12 @@ struct GridFilm: View {
 //                case .failure:
 //                    Color(UIColor.systemGray3)
 //                @unknown default:
-//                    EmptyView()
+//                    Color(UIColor.systemGray3)
 //                }
 //            }
-
 //            Rectangle()
 //                .fill(Color.black.opacity(0.25))
-//                .frame(width: 350, height: 350/16*9)
-            
+//            
 //            VStack (alignment:.leading){
 //                Text(film.title)
 //                    .foregroundColor(.white)
@@ -170,9 +247,10 @@ struct GridFilm: View {
 //            }
 //            .padding(EdgeInsets(top: 40, leading: 20, bottom: 30, trailing: 40))
 //        }
-//        .frame(width: frameWidth, height: frameWidth/16*9)
+//        .aspectRatio(aspectRatio, contentMode: .fit) // Maintain fixed aspect ratio for the entire ZStack
+//        .frame(maxWidth: .infinity) // Make it adjustable in width
 //    }
-}
+//}
 
 
 struct ListPage_Previews: PreviewProvider {
@@ -219,20 +297,20 @@ struct ListPage_Previews: PreviewProvider {
             )
         ]
         
-        VStack {
-//            LazyGridPage(list: dummyList) { listObject in
-//                GridList(list: listObject)
-//            }
-//            
-//            Divider()
-//            
-            LazyGridPage(list: dummyPeople) { listObject in
-                GridPerson(person: listObject)
-            }
-            
-            Divider()
-            LazyGridPage(list: sampleMovies) { listObject in
-                GridFilm(film: listObject)
+        ScrollView {
+            VStack (alignment: .center) {
+//                LazyGridPage(list: dummyList) { listObject in
+//                    GridList(list: listObject)
+//                }
+//                Divider()
+//                LazyGridPage(list: dummyPeople) { listObject in
+//                    GridPerson(person: listObject)
+//                }
+//                Divider()
+                LazyGridPage(list: sampleMovies) { listObject in
+                    GridFilm(film: listObject)
+                }
+                
             }
         }
     }
