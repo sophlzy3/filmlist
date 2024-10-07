@@ -9,6 +9,8 @@ import SwiftUI
 
 struct SearchView: View {
     @EnvironmentObject var searchvar: SearchVar
+    @EnvironmentObject var preferences: Preferences
+    
     var body: some View {
         ScrollView {
             VStack {
@@ -16,6 +18,8 @@ struct SearchView: View {
                 SearchLocation()
                     .frame(width:.infinity,height:40)
                 SearchOption()
+                    .environmentObject(searchvar)
+                    .environmentObject(preferences)
                 
                 if searchvar.ButtonPosition {
                     SearchLibrary()

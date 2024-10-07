@@ -1,12 +1,11 @@
-# BUGS
-- CHINESE SUPPORT IN MOVIE SEARCH 
+# TODO
+- director page
+- add links into description (markdown support for notes)
+- MUlTILANGAUGE SUPPORT IN SEARCH
+- add more search pages 
 - AlertToast not disappearing after adding movies
-- make user identification like 
-
-
-# NEXT STEPS
-- combine multiple pages together
-
+    - alertToast disappears as background task after 3 seconds
+- make user identification, Auth0?
 
 
 # FEATURE LIST
@@ -22,3 +21,4 @@
     - character spacing/tracking
     - dynamic typein settings?
     - https://developer.apple.com/videos/play/wwdc2020/10175/ at around 24:00
+

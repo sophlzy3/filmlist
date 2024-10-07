@@ -8,38 +8,60 @@
 import SwiftUI
 import Foundation
 
-
 struct LazyGridPage<Item: Identifiable, Content: View>: View {
     var list: [Item]
     let content: (Item) -> Content
-    let alignment: HorizontalAlignment = .center // Can be passed as parameter
+    let alignment: HorizontalAlignment = .center
+    
+    // Define a dictionary with item types as keys and a tuple for width and height as values
+    var dimensions: (width: CGFloat, height: CGFloat) {
+        let screenWidth = UIScreen.main.bounds.width
+        let n: CGFloat = max(screenWidth / 250, 1) // Minimum 1 column with 350px as base
 
+        // Calculate width and height for ReturnedMovie
+        let calculatedWidth = screenWidth / n
+        let calculatedHeight = calculatedWidth / 16 * 9 // Aspect ratio of 16:9
+
+        // Define a dictionary with item types as keys and a tuple for width and height as values
+        let typeDimensions: [String: (width: CGFloat, height: CGFloat)] = [
+            "Data_people": (width: 150, height: 200),
+            "Data_list": (width: 150, height: 180),
+            "ReturnedMovie": (width: calculatedWidth, height: calculatedHeight)
+        ]
+
+        // Check the type of the first item in the list
+        if let firstItem = list.first {
+            let typeName = String(describing: type(of: firstItem))
+            return typeDimensions[typeName] ?? (width: 150, height: 180)
+        }
+        
+        // Default dimensions if list is empty
+        return (width: 150, height: 180)
+    }
+
+    
+    var dynamicSpacing: CGFloat {
+        let screenWidth = UIScreen.main.bounds.width
+        let numberOfColumns = max(Int(screenWidth / dimensions.width), 1)
+        let totalSpacing = screenWidth - (CGFloat(numberOfColumns) * dimensions.width)
+        return max(totalSpacing / CGFloat(numberOfColumns + 1), 10) // Ensure minimum spacing of 10
+    }
     
     var columns: [GridItem] {
         let screenWidth = UIScreen.main.bounds.width
-        var itemWidth: CGFloat
-        
-        if list.first is Data_people {
-            itemWidth = 300  // Width for GridPerson items
-        } else if list.first is ReturnedMovie {
-            //            itemWidth = screenWidth - 40  // Full screen width for GridFilm items
-            itemWidth = 200
-        } else {
-            itemWidth = 150  // Default width
-        }
-        
-        let numberOfColumns = max(Int(screenWidth / itemWidth), 1) // Ensure at least 1 column
-        return Array(repeating: GridItem(.flexible(minimum: itemWidth)), count: numberOfColumns)
+        let numberOfColumns = max(Int(screenWidth / dimensions.width), 1)
+        return Array(repeating: GridItem(.flexible(minimum: dimensions.width)), count: numberOfColumns)
     }
     
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 20) {
+        LazyVGrid(columns: columns, spacing: dynamicSpacing) {
             ForEach(list) { item in
-                content(item)  // Construct the view using the closure
-//                    .frame(minWidth: 150, maxWidth: .infinity, alignment: .leading)
-                    .padding(5)
+                content(item)
+                    .frame(height: dimensions.height)
+                    .padding(.vertical,5)
             }
         }
+        .padding(.horizontal)
         .frame(maxWidth: .infinity)
     }
 }
@@ -124,9 +146,8 @@ struct GridFilm: View {
             let width = geometry.size.width
             let height = width / aspectRatio // Maintain the aspect ratio
             let imageURL = URL(string: "https://image.tmdb.org/t/p/original/" + (film.backdrop_path ?? ""))!
-            
+
             ZStack(alignment: .bottomLeading) {
-                // Background Image
                 AsyncImage(url: imageURL) { phase in
                     switch phase {
                     case .empty:
@@ -144,12 +165,10 @@ struct GridFilm: View {
                     }
                 }
 
-                // Overlay Rectangle
                 Rectangle()
                     .fill(Color.black.opacity(0.25))
-                    .frame(width: width, height: height) // Match the frame to the calculated size
+                    .frame(width: width, height: height)
                 
-                // Text Content
                 VStack(alignment: .leading) {
                     Text(film.title)
                         .foregroundColor(.white)
@@ -170,88 +189,11 @@ struct GridFilm: View {
                 }
                 .padding(EdgeInsets(top: 40, leading: 20, bottom: 30, trailing: 40))
             }
-            .aspectRatio(aspectRatio, contentMode: .fit) // Maintain the aspect ratio for the entire ZStack
-            .frame(maxWidth: .infinity) // Ensure it uses the full width
+            .aspectRatio(aspectRatio, contentMode: .fit)
+            .frame(width: width, height: height)
         }
     }
 }
-
-
-//struct GridFilm: View {
-////    @State private var originalFrameSize: CGSize?
-////    var frameWidth: CGFloat = 350
-//    var aspectRatio: CGFloat = 16.0 / 9.0
-//    var film: ReturnedMovie
-//    var descriptionString: String {
-//        let releaseYear = film.release_date?.prefix(4) ?? "Date Unknown"
-//        
-//        var genreString: String {
-//            let genreNames = film.genre_ids.compactMap { genreIDs[$0] }
-//            
-//            if genreNames.isEmpty {
-//                return "No genre"
-//            } else if genreNames.count <= 2 {
-//                return genreNames.joined(separator: "/")
-//            } else {
-//                return genreNames.prefix(2).joined(separator: "/")
-//            }
-//        }
-//        // Define englishName outside the conditional to use it later
-//        var englishName = "Unknown"
-//        
-//        // Assuming languageIDs is defined as [String: [String: String]]
-//        if let languageInfo = languageIDs[film.original_language] {
-//            englishName = languageInfo["english_name"] ?? "Unknown"
-//        }
-//        
-//        return "\(releaseYear) • \(genreString) • \(englishName)"
-//    }
-//
-//    var body: some View {
-//        let imageURL = URL(string: "https://image.tmdb.org/t/p/original/" + (film.backdrop_path ?? ""))!
-//        ZStack (alignment: .bottomLeading){
-//            AsyncImage(url: imageURL) { phase in
-//                switch phase {
-//                case .empty:
-//                    ProgressView()
-//                case .success(let image):
-//                    image
-//                        .resizable()
-//                        .scaledToFill()
-////                        .edgesIgnoringSafeArea(.horizontal)
-//                        .clipped()
-//                        .foregroundColor(.secondary)
-//                case .failure:
-//                    Color(UIColor.systemGray3)
-//                @unknown default:
-//                    Color(UIColor.systemGray3)
-//                }
-//            }
-//            Rectangle()
-//                .fill(Color.black.opacity(0.25))
-//            
-//            VStack (alignment:.leading){
-//                Text(film.title)
-//                    .foregroundColor(.white)
-//                    .font(.system(size: 30))
-//                    .fontWeight(.bold)
-//                    .lineLimit(2)
-//                    .truncationMode(.tail)
-//                    .frame(width:.infinity)
-//                Spacer()
-//                    .frame(height:10)
-//                Text(descriptionString)
-//                    .foregroundColor(.white)
-//                    .fontWeight(.bold)
-//                    .font(.system(size:15))
-//            }
-//            .padding(EdgeInsets(top: 40, leading: 20, bottom: 30, trailing: 40))
-//        }
-//        .aspectRatio(aspectRatio, contentMode: .fit) // Maintain fixed aspect ratio for the entire ZStack
-//        .frame(maxWidth: .infinity) // Make it adjustable in width
-//    }
-//}
-
 
 struct ListPage_Previews: PreviewProvider {
     static var previews: some View {
@@ -306,7 +248,7 @@ struct ListPage_Previews: PreviewProvider {
 //                LazyGridPage(list: dummyPeople) { listObject in
 //                    GridPerson(person: listObject)
 //                }
-//                Divider()
+                Divider()
                 LazyGridPage(list: sampleMovies) { listObject in
                     GridFilm(film: listObject)
                 }

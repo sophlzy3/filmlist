@@ -9,12 +9,14 @@ import SwiftUI
 
 @main
 struct list_projectApp: App {
+    @StateObject private var searchvar = SearchVar()
+    @StateObject private var preferences = Preferences() // Initialize Preferences here
+    
     var body: some Scene {
         WindowGroup {
            Main()
+                .environmentObject(searchvar)
+                .environmentObject(preferences) // Pass Preferences as an environment object
         }
     }
 }
-
-
-// test: Dogville's id is 553, portrait: 531428

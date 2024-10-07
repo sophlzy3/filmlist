@@ -9,6 +9,7 @@ import SwiftUI
 
 struct Main: View {
     @EnvironmentObject var preferences: Preferences
+    @EnvironmentObject var searchvar: SearchVar
     @State private var selectedTab = "search"
 
     var body: some View {
@@ -24,6 +25,8 @@ struct Main: View {
                 .tabItem {
                     Label("Search", systemImage: "magnifyingglass")
                 }
+                .environmentObject(searchvar)
+                .environmentObject(preferences)
             
             Settings()
                 .tag("setting")

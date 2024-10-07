@@ -83,7 +83,7 @@
 		E4BE9F0B2A5609D700D9FFCB /* FilmPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilmPage.swift; sourceTree = "<group>"; };
 		E4BE9F0F2A5614C800D9FFCB /* PeoplePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeoplePage.swift; sourceTree = "<group>"; };
 		E4C9A5162A6542940018DCC2 /* SearchFinal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFinal.swift; sourceTree = "<group>"; };
-		E4C9A5182A6542B70018DCC2 /* progress.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = progress.md; sourceTree = "<group>"; };
+		E4C9A5182A6542B70018DCC2 /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
 		E4E03A6D2A3CD0F700EBA3C6 /* list_projectApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = list_projectApp.swift; sourceTree = "<group>"; };
 		E4E03A712A3CD0FB00EBA3C6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E4E03A742A3CD0FB00EBA3C6 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -182,7 +182,7 @@
 			isa = PBXGroup;
 			children = (
 				E4B6BCAD2A848DCC00CE806E /* README.md */,
-				E4C9A5182A6542B70018DCC2 /* progress.md */,
+				E4C9A5182A6542B70018DCC2 /* TODO.md */,
 				E4E03A6C2A3CD0F700EBA3C6 /* list-project */,
 				E486F1D92B459A650061A76F /* list-project.app */,
 				E48E37692C4A23DF00F8AFA1 /* function_test.xctest */,
