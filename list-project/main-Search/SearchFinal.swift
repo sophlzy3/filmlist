@@ -16,7 +16,7 @@ struct SearchView: View {
             VStack {
                 SearchBar()
                 SearchLocation()
-                    .frame(width:.infinity,height:40)
+                    .frame(maxWidth: .infinity, minHeight: 40)
                 SearchOption()
                     .environmentObject(searchvar)
                     .environmentObject(preferences)
