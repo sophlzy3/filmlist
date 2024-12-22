@@ -27,68 +27,21 @@ struct Main: View {
                 }
                 .environmentObject(searchvar)
                 .environmentObject(preferences)
+//                .onAppear {
+//                    searchvar.isSearchFocused = true
+//                }
+                .onTapGesture {
+                    if selectedTab == "search" {
+                        searchvar.isSearchFocused = true
+                        print(searchvar.isSearchFocused)
+                    }
+                }
             
             Settings()
                 .tag("setting")
                 .tabItem {
                     Label("Settings", systemImage: "gear")
                 }
-        }
-//        .foregroundColor(preferences.accentColor)
-    }
-}
-
-struct MainBottomBar: View {
-    @EnvironmentObject var preferences: Preferences
-    @EnvironmentObject var mainvar: MainVar
-    
-    var body: some View {
-        ZStack{
-            Rectangle()
-                .frame(width:.infinity, height:200)
-                .foregroundColor(.white)
-            HStack{
-                Spacer()
-                
-                Button(action: {
-                    mainvar.pageChoice = "search"
-                }, label: {
-                    VStack{
-                        if mainvar.searchActivated {
-                            Image(systemName:"magnifyingglass")
-                                .foregroundColor(preferences.accentColor)
-                            Text("Search")
-                                .font(.caption)
-                                .foregroundColor(preferences.accentColor)
-                        } else {
-                            Image(systemName:"magnifyingglass")
-                                .foregroundColor(.gray)
-                            Text("Search")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                    }
-                })
-                
-                Spacer()
-                
-                Button(action: {
-                    mainvar.pageChoice = "library"
-                }, label: {
-                    VStack{
-                        if mainvar.libActivated {
-                        } else {
-                            Image(systemName:"film.stack")
-                                .foregroundColor(preferences.accentColor)
-                            Text("Library")
-                                .font(.caption)
-                                .foregroundColor(preferences.accentColor)
-                        }
-                    }
-                })
-                
-                Spacer()
-            }
         }
     }
 }

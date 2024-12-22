@@ -19,12 +19,12 @@ class SearchVar: ObservableObject {
     @Published var optionChoice: String = "Title"
     @Published var optionColor: Color = .cyan
     @Published var isSearching: Bool = false
+    @Published var isSearchFocused: Bool = false  // Add this line
     @Published var searchResults: MovieSearchResult = MovieSearchResult(page: 0, results: [], total_pages:0, total_results: 0)
 }
 
 class MainVar: ObservableObject {
     @Published var pageChoice: String = "search"
-    @Published var searchActivated: Bool = false
     @Published var libActivated: Bool = false
     @Published var searchColor: Bool = true
 }

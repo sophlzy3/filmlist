@@ -36,6 +36,8 @@ struct SearchView: View {
 struct SearchBar: View {
     @EnvironmentObject var searchvar: SearchVar
     @State private var errorMessage: String = ""
+    @FocusState private var isSearchFocused: Bool
+    
     
     var body: some View {
         HStack (alignment:.center) {
@@ -51,6 +53,16 @@ struct SearchBar: View {
                             .onChange(of: searchvar.SearchText) { newValue in
                                 searchvar.SearchText = newValue // Corrected reference to searchvar
                             }
+                            .onAppear {
+                                isSearchFocused = searchvar.isSearchFocused
+                            }
+                            .onChange(of: isSearchFocused) { newValue in
+                                searchvar.isSearchFocused = newValue
+                            }
+                            .onChange(of: searchvar.isSearchFocused) { newValue in
+                                isSearchFocused = newValue
+                            }
+                            .focused($isSearchFocused)
                             
                     } else {
                         TextField("Search in Library",text: $searchvar.SearchText)
@@ -69,6 +81,9 @@ struct SearchBar: View {
             
             Text("Cancel")
                 .padding(EdgeInsets(top:10, leading: 0, bottom: 10, trailing: 0))
+                .onTapGesture {
+                    isSearchFocused = false // Collapse the keyboard
+                }
         }
     }
     
