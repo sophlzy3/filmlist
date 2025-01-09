@@ -1,4 +1,7 @@
 # TODO
+- import/bulk import movie button
+- grid pages
+
 - director page
 - add links into description (markdown support for notes)
 - MUlTILANGAUGE SUPPORT IN SEARCH

@@ -72,25 +72,17 @@ struct Data_film: Codable {
     let vote_average: Float?
 }
 
-struct Preview_genre: Codable, Hashable, Equatable {
+struct Preview_genre: Codable, Hashable, Equatable, Identifiable {
     let id: Int
     let name: String
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-        hasher.combine(name)
-    }
-
-    static func == (lhs: Preview_genre, rhs: Preview_genre) -> Bool {
-        return lhs.id == rhs.id && lhs.name == rhs.name
-    }
 }
 
-struct Preview_country: Codable, Equatable {
+struct Preview_country: Codable, Equatable, Identifiable {
+    var id: String { iso_3166_1 }
     let iso_3166_1: String
     let name: String
 }
-struct Preview_company: Codable, Equatable {
+struct Preview_company: Codable, Equatable, Identifiable {
     let id: Int
     let logo_path: String?
     let name: String

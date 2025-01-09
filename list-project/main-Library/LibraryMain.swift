@@ -8,10 +8,9 @@
 import SwiftUI
 
 struct LibraryMain: View {
+    @State private var isLoading = true
     @State private var path = NavigationPath()
     @State private var items = LibraryItem.allCases
-    
-    @State private var isLoading = true
 
     @State private var people: [Data_people] = []
     @State private var countries: [Preview_country] = []
@@ -80,6 +79,7 @@ struct LibraryMain: View {
                     self.countries = fetchedCountries
                     self.companies = fetchedCompanies
                     self.people = []
+                    self.lists = fetchedLists
                 }
             } catch {
                 print("Failed to fetch films: \(error)")
@@ -94,9 +94,27 @@ struct LibraryMain: View {
     func destinationView(item: LibraryItem) -> some View {
         switch item {
         case .people:
-            return AnyView(destination(thing: "people"))
+            do {
+                return isLoading
+                ? AnyView(ProgressView())
+                : AnyView(ScrollView {
+                    LazyGridPage(list: self.people) { listObject in
+                        GridPerson(person: listObject)
+                    }
+                }.padding())
+            } catch {
+                throw error
+                return AnyView(destination(thing: "people"))
+            }
         case .countries:
-            return AnyView(destination(thing: "countries"))
+            return isLoading
+            ? AnyView(ProgressView())
+            : AnyView(ScrollView {
+                LazyGridPage(list: self.countries) { listObject in
+                    GridCountry(country: listObject)
+                }
+            }.padding())
+            
         case .companies:
             return AnyView(destination(thing: "companies"))
         case .genres:
@@ -107,6 +125,7 @@ struct LibraryMain: View {
             : AnyView(ScrollView {
                 MovieResultList(movie_list: films)
             }.padding())
+        
         case .lists:
             return AnyView(destination(thing: "lists"))
         }

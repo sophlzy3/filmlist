@@ -29,7 +29,7 @@ struct Main: View {
                 .environmentObject(preferences)
 //                .onAppear {
 //                    searchvar.isSearchFocused = true
-//                }
+//                }8
                 .onTapGesture {
                     if selectedTab == "search" {
                         searchvar.isSearchFocused = true

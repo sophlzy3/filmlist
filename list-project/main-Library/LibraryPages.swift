@@ -13,7 +13,6 @@ struct LazyGridPage<Item: Identifiable, Content: View>: View {
     let content: (Item) -> Content
     let alignment: HorizontalAlignment = .center
     
-    // Define a dictionary with item types as keys and a tuple for width and height as values
     var dimensions: (width: CGFloat, height: CGFloat) {
         let screenWidth = UIScreen.main.bounds.width
         let n: CGFloat = max(screenWidth / 250, 1) // Minimum 1 column with 350px as base
@@ -65,7 +64,6 @@ struct LazyGridPage<Item: Identifiable, Content: View>: View {
         .frame(maxWidth: .infinity)
     }
 }
-
 
 struct GridList: View {
     var imageSize: CGFloat = 150
@@ -195,6 +193,68 @@ struct GridFilm: View {
     }
 }
 
+struct GridCountry: View {
+    var imageSize: CGFloat = 150
+    var country: Preview_country
+    
+    var body: some View {
+        ZStack {
+//            map pic
+            
+            Text(country.name)
+                .font(.headline)
+                .frame(maxWidth: imageSize)
+                .multilineTextAlignment(.center)
+        }
+    }
+}
+
+struct GridCompany: View {
+    var imageSize: CGFloat = 150
+    var company: Preview_company
+    
+    var body: some View {
+        VStack (alignment: .center) {
+            let path = company.logo_path
+            if let profilePath = path, !profilePath.isEmpty, let imgURL = URL(string: "https://image.tmdb.org/t/p/original/" + (path ?? "")) {
+                AsyncImage(url: imgURL) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: imageSize, height: imageSize)
+                        .clipped()
+                        .clipShape(Circle())
+                        .cornerRadius(7)
+                } placeholder: {
+                    ProgressView()
+                }
+            } else {
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(width: imageSize, height: imageSize)
+            }
+            
+//            convert iso to name
+            Text(company.name + (emoji(company.origin_country) ?? ""))
+                .font(.headline)
+                .frame(maxWidth: imageSize)
+                .multilineTextAlignment(.center)
+        }
+    }
+}
+
+struct GridGenre: View {
+    var imageSize: CGFloat = 150
+    var genre: Preview_genre
+    
+    var body: some View {
+        Text(genre.name)
+            .font(.headline)
+            .frame(maxWidth: imageSize)
+            .multilineTextAlignment(.center)
+    }
+}
+
 struct ListPage_Previews: PreviewProvider {
     static var previews: some View {
         let dummyList = [
@@ -210,13 +270,11 @@ struct ListPage_Previews: PreviewProvider {
                 "/vINgGecnz95iDL6fjQMARDsocgG.jpg"
               ])
         ]
-        
         let dummyPeople = [
             Data_people(id: 42, original_name: "Lars von Trier", profile_path: "/rlUAvvpXwSA3Qihl3vDW7RtWagH.jpg", known_for_department: ""),
             Data_people(id: 2227, original_name: "Nicole Kidman", profile_path: "/lfW2cDigTcvuoe4k6UfCdGVE1R6.jpg", known_for_department: "")
         ]
-        
-        let sampleMovies: [ReturnedMovie] = [
+        let dummyMovies: [ReturnedMovie] = [
             ReturnedMovie(
                 id: 1,
                 title: "Inception",
@@ -239,19 +297,53 @@ struct ListPage_Previews: PreviewProvider {
             )
         ]
         
+//        TO TEST:
+        let dummyCountry = [
+            Preview_country(iso_3166_1: "SE", name: "Sweden"),
+            Preview_country(iso_3166_1: "US", name: "United States"),
+            Preview_country(iso_3166_1: "GB", name: "United Kingdom"),
+            Preview_country(iso_3166_1: "CA", name: "Canada"),
+            Preview_country(iso_3166_1: "FR", name: "France")
+        ]
+        let dummyCompany = [
+            Preview_company(id: 25491, logo_path: nil, name: "Edith Film Oy", origin_country: ""),
+            Preview_company(id: 2801, logo_path: "/bswb1PLLsKDUXMLgy42bZtCtIde.png", name: "Film i Väst", origin_country: "SE"),
+            Preview_company(id: 7843, logo_path: "/v293yOJQyswsz3bLQ7eylTcsvdp.png", name: "4 1/2", origin_country: "NO")
+        ]
+        let dummyGenre = [
+            Preview_genre(id: 28, name: "Action"),
+            Preview_genre(id: 12, name: "Adventure"),
+            Preview_genre(id: 16, name: "Animation"),
+            Preview_genre(id: 99, name: "Documentary")
+        ]
+        
         ScrollView {
             VStack (alignment: .center) {
-//                LazyGridPage(list: dummyList) { listObject in
-//                    GridList(list: listObject)
-//                }
-//                Divider()
-//                LazyGridPage(list: dummyPeople) { listObject in
-//                    GridPerson(person: listObject)
-//                }
+                LazyGridPage(list: dummyList) { listObject in
+                    GridList(list: listObject)
+                }
                 Divider()
-                LazyGridPage(list: sampleMovies) { listObject in
+                LazyGridPage(list: dummyPeople) { listObject in
+                    GridPerson(person: listObject)
+                }
+                Divider()
+                LazyGridPage(list: dummyMovies) { listObject in
                     GridFilm(film: listObject)
                 }
+//              NEW STUFF  ==================================
+                Divider()
+                LazyGridPage(list: dummyCompany) { listObject in
+                    GridCompany(company: listObject)
+                }
+                Divider()
+                LazyGridPage(list: dummyCountry) { listObject in
+                    GridCountry(country: listObject)
+                }
+                Divider()
+                LazyGridPage(list: dummyGenre) { listObject in
+                    GridGenre(genre: listObject)
+                }
+                
                 
             }
         }
