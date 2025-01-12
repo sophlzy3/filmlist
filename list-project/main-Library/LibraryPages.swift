@@ -26,6 +26,8 @@ struct LazyGridPage<Item: Identifiable, Content: View>: View {
             "Data_people": (width: 150, height: 200),
             "Data_list": (width: 150, height: 180),
             "ReturnedMovie": (width: calculatedWidth, height: calculatedHeight)
+//            "Preview_genre": (width: screenWidth-30, height: 50),
+//            "Preview_company": (width: screenWidth-30, height: 50),
         ]
 
         // Check the type of the first item in the list

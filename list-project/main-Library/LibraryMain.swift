@@ -57,8 +57,6 @@ struct LibraryMain: View {
         }
     }
 
-
-
     func fetchLibraryData() {
         Task {
             do {
@@ -92,20 +90,18 @@ struct LibraryMain: View {
     }
         
     func destinationView(item: LibraryItem) -> some View {
+//    test code: return AnyView(destination(thing: "companies"))
+
         switch item {
         case .people:
-            do {
-                return isLoading
-                ? AnyView(ProgressView())
-                : AnyView(ScrollView {
-                    LazyGridPage(list: self.people) { listObject in
-                        GridPerson(person: listObject)
-                    }
-                }.padding())
-            } catch {
-                throw error
-                return AnyView(destination(thing: "people"))
-            }
+            return isLoading
+            ? AnyView(ProgressView())
+            : AnyView(ScrollView {
+                LazyGridPage(list: self.people) { listObject in
+                    GridPerson(person: listObject)
+                }
+            }.padding())
+            
         case .countries:
             return isLoading
             ? AnyView(ProgressView())
@@ -116,9 +112,23 @@ struct LibraryMain: View {
             }.padding())
             
         case .companies:
-            return AnyView(destination(thing: "companies"))
+            return isLoading
+            ? AnyView(ProgressView())
+            : AnyView(ScrollView {
+                LazyGridPage(list: self.companies) { listObject in
+                    GridCompany(company: listObject)
+                }
+            }.padding())
+            
         case .genres:
-            return AnyView(destination(thing: "genres"))
+            return isLoading
+            ? AnyView(ProgressView())
+            : AnyView(ScrollView {
+                LazyGridPage(list: self.genres) { listObject in
+                    GridGenre(genre: listObject)
+                }
+            }.padding())
+
         case .titles:
             return isLoading
             ? AnyView(ProgressView())
@@ -127,7 +137,13 @@ struct LibraryMain: View {
             }.padding())
         
         case .lists:
-            return AnyView(destination(thing: "lists"))
+            return isLoading
+            ? AnyView(ProgressView())
+            : AnyView(ScrollView {
+                LazyGridPage(list: self.lists) { listObject in
+                    GridList(list: listObject)
+                }
+            }.padding())
         }
     }
 }
