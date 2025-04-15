@@ -19,49 +19,28 @@ struct LazyGridPage<Item: Identifiable, Content: View>: View {
 
         // Calculate width and height for ReturnedMovie
         let calculatedWidth = screenWidth / n
-        let calculatedHeight = calculatedWidth / 16 * 9
+        let calculatedHeight = calculatedWidth / 16 * 9 // Aspect ratio of 16:9
 
         // Define a dictionary with item types as keys and a tuple for width and height as values
         let typeDimensions: [String: (width: CGFloat, height: CGFloat)] = [
             "Data_people": (width: 150, height: 200),
             "Data_list": (width: 150, height: 180),
-            "ReturnedMovie": (width: calculatedWidth, height: calculatedHeight),
-            "Preview_company": (width: 150, height: 170),
-            "Preview_genre": (width: screenWidth-40, height: 20),
-            "Preview_country": (width: screenWidth-25, height: 15)
+            "ReturnedMovie": (width: calculatedWidth, height: calculatedHeight)
+//            "Preview_genre": (width: screenWidth-30, height: 50),
+//            "Preview_company": (width: screenWidth-30, height: 50),
         ]
 
         // Check the type of the first item in the list
         if let firstItem = list.first {
-            var typeName = String(describing: type(of: firstItem))
-            
-            // Handle Optional types by removing the "Optional<...>" wrapper
-            if typeName.hasPrefix("Optional<") && typeName.hasSuffix(">") {
-                // Extract the type name between "Optional<" and ">"
-                let startIndex = typeName.index(typeName.startIndex, offsetBy: 9) // "Optional<" is 9 characters
-                let endIndex = typeName.index(typeName.endIndex, offsetBy: -1)
-                typeName = String(typeName[startIndex..<endIndex])
-            }
-            
+            let typeName = String(describing: type(of: firstItem))
             return typeDimensions[typeName] ?? (width: 150, height: 180)
         }
-
+        
         // Default dimensions if list is empty
         return (width: 150, height: 180)
     }
-    
-    var columns: [GridItem] {
-        let screenWidth = UIScreen.main.bounds.width
-        let numberOfColumns = max(Int(screenWidth / dimensions.width), 1)
-//        print("""
-//        Layout Debug:
-//        - Screen Width: \(String(format: "%.1f", screenWidth))
-//        - Dimensions: (w: \(String(format: "%.1f", dimensions.width)), h: \(String(format: "%.1f", dimensions.height)))
-//        - Number of Columns: \(numberOfColumns)
-//        """)
-        return Array(repeating: GridItem(.flexible(minimum: dimensions.width)), count: numberOfColumns)
-    }
 
+    
     var dynamicSpacing: CGFloat {
         let screenWidth = UIScreen.main.bounds.width
         let numberOfColumns = max(Int(screenWidth / dimensions.width), 1)
@@ -69,11 +48,17 @@ struct LazyGridPage<Item: Identifiable, Content: View>: View {
         return max(totalSpacing / CGFloat(numberOfColumns + 1), 10) // Ensure minimum spacing of 10
     }
     
+    var columns: [GridItem] {
+        let screenWidth = UIScreen.main.bounds.width
+        let numberOfColumns = max(Int(screenWidth / dimensions.width), 1)
+        return Array(repeating: GridItem(.flexible(minimum: dimensions.width)), count: numberOfColumns)
+    }
+    
     var body: some View {
         LazyVGrid(columns: columns, spacing: dynamicSpacing) {
             ForEach(list) { item in
                 content(item)
-                    .frame(width: dimensions.width, height: dimensions.height)
+                    .frame(height: dimensions.height)
                     .padding(.vertical,5)
             }
         }
@@ -216,23 +201,13 @@ struct GridCountry: View {
     
     var body: some View {
         ZStack {
+//            map pic
+            
             Text(country.name)
                 .font(.headline)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .multilineTextAlignment(.leading)
+                .frame(maxWidth: imageSize)
+                .multilineTextAlignment(.center)
         }
-    }
-}
-
-struct GridGenre: View {
-    var imageSize: CGFloat = 150
-    var genre: Preview_genre
-    
-    var body: some View {
-        Text(genre.name)
-            .font(.headline)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .multilineTextAlignment(.leading)
     }
 }
 
@@ -249,7 +224,9 @@ struct GridCompany: View {
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: imageSize, height: imageSize)
-                        .cornerRadius(3)
+                        .clipped()
+                        .clipShape(Circle())
+                        .cornerRadius(7)
                 } placeholder: {
                     ProgressView()
                 }
@@ -260,11 +237,23 @@ struct GridCompany: View {
             }
             
 //            convert iso to name
-            Text(company.name)
+            Text(company.name + (emoji(company.origin_country) ?? ""))
                 .font(.headline)
                 .frame(maxWidth: imageSize)
                 .multilineTextAlignment(.center)
         }
+    }
+}
+
+struct GridGenre: View {
+    var imageSize: CGFloat = 150
+    var genre: Preview_genre
+    
+    var body: some View {
+        Text(genre.name)
+            .font(.headline)
+            .frame(maxWidth: imageSize)
+            .multilineTextAlignment(.center)
     }
 }
 
@@ -332,30 +321,30 @@ struct ListPage_Previews: PreviewProvider {
         
         ScrollView {
             VStack (alignment: .center) {
-//                LazyGridPage(list: dummyList) { listObject in
-//                    GridList(list: listObject)
-//                }
-//                Divider()
-//                LazyGridPage(list: dummyPeople) { listObject in
-//                    GridPerson(person: listObject)
-//                }
-//                Divider()
-//                LazyGridPage(list: dummyMovies) { listObject in
-//                    GridFilm(film: listObject)
-//                }
-////              NEW STUFF  ==================================
-//                Divider()
-//                LazyGridPage(list: dummyCompany) { listObject in
-//                    GridCompany(company: listObject)
-//                }
+                LazyGridPage(list: dummyList) { listObject in
+                    GridList(list: listObject)
+                }
+                Divider()
+                LazyGridPage(list: dummyPeople) { listObject in
+                    GridPerson(person: listObject)
+                }
+                Divider()
+                LazyGridPage(list: dummyMovies) { listObject in
+                    GridFilm(film: listObject)
+                }
+//              NEW STUFF  ==================================
+                Divider()
+                LazyGridPage(list: dummyCompany) { listObject in
+                    GridCompany(company: listObject)
+                }
                 Divider()
                 LazyGridPage(list: dummyCountry) { listObject in
                     GridCountry(country: listObject)
                 }
-//                Divider()
-//                LazyGridPage(list: dummyGenre) { listObject in
-//                    GridGenre(genre: listObject)
-//                }
+                Divider()
+                LazyGridPage(list: dummyGenre) { listObject in
+                    GridGenre(genre: listObject)
+                }
                 
                 
             }

@@ -318,10 +318,10 @@ struct SearchTMDB: View {
     @EnvironmentObject var searchvar: SearchVar
     
     var body: some View {
-        if searchvar.optionChoice == "Title"
-        {
+        if searchvar.optionChoice == "Title" {
             MovieResultList(movie_list: searchvar.searchResults.results)
-        } else{
+                .environmentObject(searchvar)
+        } else {
             Text("SEARCHING IN TMDB")
         }
     }
