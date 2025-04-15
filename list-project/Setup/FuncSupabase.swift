@@ -148,9 +148,6 @@ class DatabaseManager {
 }
 
 class SupabaseActions {
-    static let supabaseURL = "https://wixystelcgjsbhvkwbin.supabase.co"
-    static let apiPublic = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpeHlzdGVsY2dqc2Jodmt3YmluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDMzODY2NDcsImV4cCI6MjAxODk2MjY0N30.jCZNPtYtWxiTqmOsFcNZ3JLuE4on-eSE7Gtab8EjHxU"
-    static let accessToken = "sbp_6aa74ababe7c6fc3953b00176d9490b604b7cd57"
     let client: SupabaseClient
     var selectedFilmDetail: Preview_film?
     var errorMessage: String?

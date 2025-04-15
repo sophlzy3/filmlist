@@ -15,7 +15,7 @@ func requestData(from url: String) async throws -> Data {
     
     let headers = [
         "accept": "application/json",
-        "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiZTI4YzAxNDMwNjBmMmIzNTI3NTk4YTlkODE2ZGUyOCIsInN1YiI6IjY0YTg0NDg2YWYyZGE4MDEwY2FkZGRkNiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.2l2A3yt7lWpgt0fGmmUZnbhcCn6wN-vkxd51yGys73M"
+        "Authorization": "Bearer \(TMDBVar().apiKey)"
     ]
     var request = URLRequest(url: requestURL, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 10.0)
     request.httpMethod = "GET"
@@ -24,6 +24,7 @@ func requestData(from url: String) async throws -> Data {
     let (data, response) = try await URLSession.shared.data(for: request)
     
     guard let httpResponse = response as? HTTPURLResponse else {
+        
         throw SearchError.invalidResponse
     }
     
@@ -35,7 +36,9 @@ func requestData(from url: String) async throws -> Data {
 }
 
 func returnMovieSearch(_ inputString: String) async throws -> MovieSearchResult {
-    let urlString = "https://api.themoviedb.org/3/search/movie?query=\(inputString)"
+    let urlString = "\(TMDBVar().searchURL)\(inputString)"
+    print(urlString)
+    
     guard let encodedURLString = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
         throw SearchError.invalidURL
     }

@@ -8,11 +8,10 @@
 - add more search pages 
 - AlertToast not disappearing after adding movies
     - alertToast disappears as background task after 3 seconds
-- make user identification, Auth0?
 
 
 # FEATURE LIST
-- awards for movies/shows
+- awards for movies/shows - wikidata?
 
 - fine tuning experience
     - add markdown preview for film notes

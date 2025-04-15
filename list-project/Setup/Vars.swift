@@ -13,6 +13,20 @@ class Preferences: ObservableObject {
 //    @Published var viewOption: String = "list"
 }
 
+class SupabaseVar: ObservableObject {
+    static let shared = SupabaseVar()
+    @Published var supabaseURL = "https://wixystelcgjsbhvkwbin.supabase.co"
+    @Published var apiPublic = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpeHlzdGVsY2dqc2Jodmt3YmluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDMzODY2NDcsImV4cCI6MjAxODk2MjY0N30.jCZNPtYtWxiTqmOsFcNZ3JLuE4on-eSE7Gtab8EjHxU"
+    @Published var accessToken = "sbp_6aa74ababe7c6fc3953b00176d9490b604b7cd57"
+    
+    private init() {}
+}
+
+class TMDBVar: ObservableObject {
+    @Published var searchURL: String = "https://api.themoviedb.org/3/search/movie?query="
+    @Published var apiKey: String = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiZTI4YzAxNDMwNjBmMmIzNTI3NTk4YTlkODE2ZGUyOCIsIm5iZiI6MTY4ODc0OTE5MC40NDcsInN1YiI6IjY0YTg0NDg2YWYyZGE4MDEwY2FkZGRkNiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.i9HxA6bO3vipXOYYd3IXEf6WkmUD4O3iYHCnKCl46k0"
+}
+
 class SearchVar: ObservableObject {
     @Published var SearchText: String = "Pulp Fiction"
     @Published var ButtonPosition: Bool = false
@@ -58,16 +72,6 @@ enum LibraryItem: String, CaseIterable {
         case .lists: return "lists"
         }
     }
-}
-
-
-class SupabaseVar: ObservableObject {
-    static let shared = SupabaseVar()
-    @Published var supabaseURL = "https://wixystelcgjsbhvkwbin.supabase.co"
-    @Published var apiPublic = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpeHlzdGVsY2dqc2Jodmt3YmluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDMzODY2NDcsImV4cCI6MjAxODk2MjY0N30.jCZNPtYtWxiTqmOsFcNZ3JLuE4on-eSE7Gtab8EjHxU"
-    @Published var accessToken = "sbp_6aa74ababe7c6fc3953b00176d9490b604b7cd57"
-    
-    private init() {}
 }
 
 class AlertVars: ObservableObject {

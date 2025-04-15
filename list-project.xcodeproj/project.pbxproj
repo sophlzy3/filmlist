@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -90,6 +90,10 @@
 		E4FF50D12B4B0D430048E7BC /* FuncDataRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuncDataRequest.swift; sourceTree = "<group>"; };
 		E4FF50D32B4B0DF00048E7BC /* FuncSupabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuncSupabase.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		E43A4B992DADE917002893CF /* main-startup */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "main-startup"; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		E48F52E02C12C1D400F06134 /* Frameworks */ = {
@@ -195,6 +199,7 @@
 				E4E03A6D2A3CD0F700EBA3C6 /* list_projectApp.swift */,
 				E40C29F92AC004B1003783B1 /* Main.swift */,
 				E4FF50D02B4B0D2A0048E7BC /* Setup */,
+				E43A4B992DADE917002893CF /* main-startup */,
 				E48882622A6A307300371E71 /* main-Library */,
 				E4C9A5152A65424D0018DCC2 /* main-Search */,
 				E4BE9F0A2A56097F00D9FFCB /* detailPage */,
@@ -260,6 +265,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				E43A4B992DADE917002893CF /* main-startup */,
 			);
 			name = "list-project";
 			packageProductDependencies = (

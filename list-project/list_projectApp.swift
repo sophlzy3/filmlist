@@ -10,13 +10,20 @@ import SwiftUI
 @main
 struct list_projectApp: App {
     @StateObject private var searchvar = SearchVar()
-    @StateObject private var preferences = Preferences() // Initialize Preferences here
+    @StateObject private var preferences = Preferences()
+    @AppStorage("isFirstLaunch") private var isFirstLaunch: Bool = true
     
     var body: some Scene {
         WindowGroup {
-           Main()
-                .environmentObject(searchvar)
-                .environmentObject(preferences) // Pass Preferences as an environment object
+            if isFirstLaunch {
+                StartupView()
+                    .environmentObject(searchvar)
+                    .environmentObject(preferences)
+            } else {
+                Main()
+                    .environmentObject(searchvar)
+                    .environmentObject(preferences)
+            }
         }
     }
 }

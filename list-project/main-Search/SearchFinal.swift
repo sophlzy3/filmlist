@@ -6,6 +6,11 @@
 //
 
 import SwiftUI
+import Foundation
+
+#if os(iOS)
+import UIKit
+#endif
 
 struct SearchView: View {
     @EnvironmentObject var searchvar: SearchVar
@@ -38,20 +43,35 @@ struct SearchBar: View {
     @State private var errorMessage: String = ""
     @FocusState private var isSearchFocused: Bool
     
+    private var systemGray5: Color {
+        #if os(iOS)
+        return Color(UIColor.systemGray5)
+        #else
+        return Color(NSColor.systemGray)
+        #endif
+    }
+    
+    private var systemGray: Color {
+        #if os(iOS)
+        return Color(UIColor.systemGray)
+        #else
+        return Color(NSColor.systemGray)
+        #endif
+    }
     
     var body: some View {
         HStack (alignment:.center) {
             ZStack (alignment: .leading){
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color(UIColor.systemGray5))
+                    .fill(systemGray5)
                 HStack{
                     Image(systemName:"magnifyingglass")
                         .padding(EdgeInsets(top:0, leading: 10, bottom: 0, trailing: 0))
                     
                     if searchvar.ButtonPosition == false {
-                        TextField("Search TMDB Database",text: $searchvar.SearchText, onCommit: searchMovie)
+                        TextField("Search TMDB Database", text: $searchvar.SearchText)
                             .onChange(of: searchvar.SearchText) { newValue in
-                                searchvar.SearchText = newValue // Corrected reference to searchvar
+                                searchvar.SearchText = newValue
                             }
                             .onAppear {
                                 isSearchFocused = searchvar.isSearchFocused
@@ -63,21 +83,35 @@ struct SearchBar: View {
                                 isSearchFocused = newValue
                             }
                             .focused($isSearchFocused)
-                            
+                            .onSubmit {
+                                print("searching...")
+                                searchMovie()
+                            }
                     } else {
                         TextField("Search in Library",text: $searchvar.SearchText)
                     }
                     
-                    Button (action:{
+                    Button(action: {
                         searchvar.SearchText = ""
-                    }){
+                    }) {
                         Image(systemName:"xmark.circle.fill")
-                            .foregroundColor(Color(UIColor.systemGray))
+                            .foregroundColor(systemGray)
                             .padding(EdgeInsets(top:0, leading: 0, bottom: 0, trailing: 10))
-                    }}
+                    }
+                }
             }
             .frame(width:.infinity,height:40)
             
+            Button(action: {
+                print("DEBUG: Test button pressed - \(Date())")
+                searchMovie()
+            }) {
+                Text("Test Search")
+                    .foregroundColor(.white)
+                    .padding(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    .background(Color.blue)
+                    .cornerRadius(8)
+            }
             
             Text("Cancel")
                 .padding(EdgeInsets(top:10, leading: 0, bottom: 10, trailing: 0))
@@ -88,15 +122,30 @@ struct SearchBar: View {
     }
     
     private func searchMovie() {
+        print("DEBUG: searchMovie() called")
         Task {
+            print("DEBUG: Inside Task")
             do {
-                let movieResults = try await returnMovieSearch(searchvar.SearchText)
+                print("DEBUG: Inside do block")
                 DispatchQueue.main.async {
+                    print("DEBUG: Setting isSearching to true")
+                    searchvar.isSearching = true
+                }
+                
+                print("DEBUG: About to call returnMovieSearch")
+                let movieResults = try await returnMovieSearch(searchvar.SearchText)
+                print("DEBUG: Got movie results")
+                
+                DispatchQueue.main.async {
+                    print("DEBUG: Updating search results")
                     self.searchvar.searchResults = movieResults
                     self.errorMessage = self.searchvar.searchResults.results.isEmpty ? "No results found" : ""
+                    self.searchvar.isSearching = false
                 }
             } catch {
+                print("DEBUG: Caught error: \(error)")
                 DispatchQueue.main.async {
+                    self.searchvar.isSearching = false
                     switch error {
                     case SearchError.invalidURL:
                         self.errorMessage = "Invalid URL"
@@ -111,28 +160,42 @@ struct SearchBar: View {
                     default:
                         self.errorMessage = "An unexpected error occurred: \(error.localizedDescription)"
                     }
-                    self.searchvar.searchResults = MovieSearchResult(page: 0, results: [], total_pages: 0, total_results: 0) // Clear search results on error
+                    self.searchvar.searchResults = MovieSearchResult(page: 0, results: [], total_pages: 0, total_results: 0)
                 }
             }
         }
     }
-
 }
 
 struct SearchLocation: View {
     @EnvironmentObject var searchvar: SearchVar
     
-    var body: some View{
+    private var systemGray5: Color {
+        #if os(iOS)
+        return Color(UIColor.systemGray5)
+        #else
+        return Color(NSColor.systemGray)
+        #endif
+    }
+    
+    private var systemGray6: Color {
+        #if os(iOS)
+        return Color(UIColor.systemGray6)
+        #else
+        return Color(NSColor.systemGray)
+        #endif
+    }
+    
+    var body: some View {
         GeometryReader { geometry in
             ZStack (alignment:.leading){
-                
                 Button(action: {
                     withAnimation (.easeInOut(duration: 0.6)){
                         searchvar.ButtonPosition.toggle()
                     }
                 }) {
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(UIColor.systemGray5))
+                        .fill(systemGray5)
                         .frame(width: .infinity, height: 40)
                 }
                 
@@ -141,7 +204,7 @@ struct SearchLocation: View {
                         Spacer()
                     }
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(UIColor.systemGray6))
+                        .fill(systemGray6)
                         .frame(width:geometry.size.width * 0.5)
                         .padding(5)
                 }
@@ -174,70 +237,70 @@ struct SearchOption: View {
                     Button (action: {
                         searchvar.optionChoice = "Title"
                     }){
-                            ZStack{
-                                if searchvar.optionChoice == "Title" {
-                                    RoundedRectangle(cornerRadius: 15)
-                                        .fill(preferences.accentColor)
-                                    Text("Title")
-                                        .foregroundColor(Color(UIColor.white))
-                                        .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
-                                }else{
-                                    Text("Title")
-                                        .foregroundColor(Color(UIColor.black))
-                                        .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
-                                }
-                            }
-                        }
-                    
-                    Button (action:{
-                            searchvar.optionChoice = "Crew"
-                    }){
-                            ZStack{
-                                if searchvar.optionChoice == "Crew" {
-                                    RoundedRectangle(cornerRadius: 15)
-                                        .fill(preferences.accentColor)
-                                    Text("Crew")
-                                        .foregroundColor(Color(UIColor.white))
-                                        .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
-                                }else{
-                                    Text("Crew")
-                                        .foregroundColor(Color(UIColor.black))
-                                        .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
-                                }
-                            }
-                        }
-                    
-                    Button (action:{
-                            searchvar.optionChoice = "Companies"
-                    }){
                         ZStack{
-                            if searchvar.optionChoice == "Companies" {
+                            if searchvar.optionChoice == "Title" {
                                 RoundedRectangle(cornerRadius: 15)
                                     .fill(preferences.accentColor)
-                                Text("Companies")
-                                    .foregroundColor(Color(UIColor.white))
+                                Text("Title")
+                                    .foregroundColor(.white)
                                     .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
                             }else{
-                                Text("Companies")
-                                    .foregroundColor(Color(UIColor.black))
+                                Text("Title")
+                                    .foregroundColor(.black)
                                     .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
                             }
                         }
                     }
                     
                     Button (action:{
-                            searchvar.optionChoice = "Awards"
+                        searchvar.optionChoice = "Crew"
+                    }){
+                        ZStack{
+                            if searchvar.optionChoice == "Crew" {
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(preferences.accentColor)
+                                Text("Crew")
+                                    .foregroundColor(.white)
+                                    .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
+                            }else{
+                                Text("Crew")
+                                    .foregroundColor(.black)
+                                    .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
+                            }
+                        }
+                    }
+                    
+                    Button (action:{
+                        searchvar.optionChoice = "Companies"
+                    }){
+                        ZStack{
+                            if searchvar.optionChoice == "Companies" {
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(preferences.accentColor)
+                                Text("Companies")
+                                    .foregroundColor(.white)
+                                    .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
+                            }else{
+                                Text("Companies")
+                                    .foregroundColor(.black)
+                                    .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
+                            }
+                        }
+                    }
+                    
+                    Button (action:{
+                        searchvar.optionChoice = "Awards"
                     }){
                         ZStack{
                             if searchvar.optionChoice == "Awards" {
                                 RoundedRectangle(cornerRadius: 15)
                                     .fill(preferences.accentColor)
                                 Text("Awards")
-                                    .foregroundColor(Color(UIColor.white))
+                                    .foregroundColor(.white)
                                     .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
                             }else{
                                 Text("Awards")
-                                    .foregroundColor(Color(UIColor.black))
+                                    .foregroundColor(.black)
                                     .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
                             }
                         }
