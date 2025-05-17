@@ -33,7 +33,7 @@ struct Main: View {
                 .onTapGesture {
                     if selectedTab == "search" {
                         searchvar.isSearchFocused = true
-                        print(searchvar.isSearchFocused)
+//                        print(searchvar.isSearchFocused)
                     }
                 }
             

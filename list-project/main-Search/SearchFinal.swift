@@ -10,6 +10,7 @@ import Foundation
 
 #if os(iOS)
 import UIKit
+import PostgREST
 #endif
 
 struct SearchView: View {
@@ -84,34 +85,40 @@ struct SearchBar: View {
                             }
                             .focused($isSearchFocused)
                             .onSubmit {
-                                print("searching...")
+                                print("Searching in TMDB...")
                                 searchMovie()
                             }
                     } else {
                         TextField("Search in Library",text: $searchvar.SearchText)
-                    }
-                    
-                    Button(action: {
-                        searchvar.SearchText = ""
-                    }) {
-                        Image(systemName:"xmark.circle.fill")
-                            .foregroundColor(systemGray)
+                            .onChange(of: searchvar.SearchText) { newValue in
+                                searchvar.SearchText = newValue
+                            }
+                            .onAppear {
+                                isSearchFocused = searchvar.isSearchFocused
+                            }
+                            .onChange(of: isSearchFocused) { newValue in
+                                searchvar.isSearchFocused = newValue
+                            }
+                            .onChange(of: searchvar.isSearchFocused) { newValue in
+                                isSearchFocused = newValue
+                            }
+                            .focused($isSearchFocused)
+                            .onSubmit {
+                                print("Searching \(searchvar.SearchText) in Library...")
+                                searchLibrary()
+                            }
+                        }
+                        
+                        Button(action: {
+                            searchvar.SearchText = ""
+                        }) {
+                            Image(systemName:"xmark.circle.fill")
+                                .foregroundColor(systemGray)
                             .padding(EdgeInsets(top:0, leading: 0, bottom: 0, trailing: 10))
                     }
                 }
             }
             .frame(width:.infinity,height:40)
-            
-            Button(action: {
-                print("DEBUG: Test button pressed - \(Date())")
-                searchMovie()
-            }) {
-                Text("Test Search")
-                    .foregroundColor(.white)
-                    .padding(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                    .background(Color.blue)
-                    .cornerRadius(8)
-            }
             
             Text("Cancel")
                 .padding(EdgeInsets(top:10, leading: 0, bottom: 10, trailing: 0))
@@ -122,28 +129,29 @@ struct SearchBar: View {
     }
     
     private func searchMovie() {
-        print("DEBUG: searchMovie() called")
         Task {
-            print("DEBUG: Inside Task")
             do {
-                print("DEBUG: Inside do block")
                 DispatchQueue.main.async {
-                    print("DEBUG: Setting isSearching to true")
                     searchvar.isSearching = true
                 }
                 
-                print("DEBUG: About to call returnMovieSearch")
-                let movieResults = try await returnMovieSearch(searchvar.SearchText)
-                print("DEBUG: Got movie results")
+                // URL encode the search text
+                guard let encodedSearchText = searchvar.SearchText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+                    DispatchQueue.main.async {
+                        self.errorMessage = "Invalid search text"
+                        self.searchvar.isSearching = false
+                    }
+                    return
+                }
+                
+                let movieResults = try await returnMovieSearch(encodedSearchText)
                 
                 DispatchQueue.main.async {
-                    print("DEBUG: Updating search results")
                     self.searchvar.searchResults = movieResults
                     self.errorMessage = self.searchvar.searchResults.results.isEmpty ? "No results found" : ""
                     self.searchvar.isSearching = false
                 }
             } catch {
-                print("DEBUG: Caught error: \(error)")
                 DispatchQueue.main.async {
                     self.searchvar.isSearching = false
                     switch error {
@@ -160,6 +168,46 @@ struct SearchBar: View {
                     default:
                         self.errorMessage = "An unexpected error occurred: \(error.localizedDescription)"
                     }
+                    self.searchvar.searchResults = MovieSearchResult(page: 0, results: [], total_pages: 0, total_results: 0)
+                }
+            }
+        }
+    }
+    
+    private func searchLibrary() {
+        Task {
+            do {
+                DispatchQueue.main.async {
+                    searchvar.isSearching = true
+                }
+                
+                // Search in movies_preview table
+                let conditions: [(String, String, URLQueryRepresentable)] = [
+                    ("title", "ilike", "\(searchvar.SearchText)")
+                ]
+                print(conditions)
+                
+                let movieResults = try await DatabaseManager.shared.fetchItem(
+                    database: "movies_preview",
+                    ofType: ReturnedMovie.self,
+                    conditions: conditions
+                )
+                
+                
+                DispatchQueue.main.async {
+                    self.searchvar.searchResults = MovieSearchResult(
+                        page: 1,
+                        results: movieResults,
+                        total_pages: 1,
+                        total_results: movieResults.count
+                    )
+                    self.errorMessage = movieResults.isEmpty ? "No results found" : ""
+                    self.searchvar.isSearching = false
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.searchvar.isSearching = false
+                    self.errorMessage = "Error searching library: \(error.localizedDescription)"
                     self.searchvar.searchResults = MovieSearchResult(page: 0, results: [], total_pages: 0, total_results: 0)
                 }
             }
@@ -319,7 +367,7 @@ struct SearchTMDB: View {
     
     var body: some View {
         if searchvar.optionChoice == "Title" {
-            MovieResultList(movie_list: searchvar.searchResults.results)
+            MovieResultList(movie_list: searchvar.searchResults.results, source: "search")
                 .environmentObject(searchvar)
         } else {
             Text("SEARCHING IN TMDB")
@@ -328,8 +376,61 @@ struct SearchTMDB: View {
 }
 
 struct SearchLibrary: View {
+    @EnvironmentObject var searchvar: SearchVar
+    @State private var movies: [ReturnedMovie] = []
+    @State private var isLoading = true
+    
     var body: some View {
-        Text("SEARCHING IN LIBRARY")
+        Group {
+            if isLoading {
+                ProgressView()
+            } else {
+                MovieResultList(movie_list: movies, source: "library")
+            }
+        }
+        .onAppear {
+            Task {
+                if movies.isEmpty {
+                    do {
+                        let conditions: [(String, String, URLQueryRepresentable)] = [
+                            ("title", "ilike", "%\(searchvar.SearchText)%")
+                        ]
+                        
+                        let fetched = try await DatabaseManager.shared.fetchItem(
+                            database: "movies_preview",
+                            ofType: ReturnedMovie.self,
+                            conditions: conditions
+                        )
+                        movies = fetched
+                        isLoading = false
+                    } catch {
+                        print("Error fetching movies: \(error)")
+                        isLoading = false
+                    }
+                }
+            }
+        }
+        .onChange(of: searchvar.SearchText) { newValue in
+            Task {
+                isLoading = true
+                do {
+                    let conditions: [(String, String, URLQueryRepresentable)] = [
+                        ("title", "ilike", "%\(newValue)%")
+                    ]
+                    
+                    let fetched = try await DatabaseManager.shared.fetchItem(
+                        database: "movies_preview",
+                        ofType: ReturnedMovie.self,
+                        conditions: conditions
+                    )
+                    movies = fetched
+                    isLoading = false
+                } catch {
+                    print("Error fetching movies: \(error)")
+                    isLoading = false
+                }
+            }
+        }
     }
 }
 

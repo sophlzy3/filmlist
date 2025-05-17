@@ -15,6 +15,7 @@ struct MovieResultList: View {
     @State private var errorMessage: String = ""
     
     var movie_list: [ReturnedMovie]
+    var source: String // "search" or "library"
     @State private var selectedFilmDetail: Preview_film = Preview_film(backdrop_path: "", budget: 0,genres: [Preview_genre(id:0,name:"Thriller")], id: 0, imdb_id: "tt", overview: "", poster_path: "", production_companies: [Preview_company(id:0,logo_path:"",name:"", origin_country:"US")], production_countries: [Preview_country(iso_3166_1:"us", name:"US")], original_title: "hi", release_date: "yyyy-mm-dd", spoken_languages: [Preview_language(english_name: "English", iso_639_1: "en", name: "English")], status: "Released", title: "", runtime:0, vote_average: 7.784)
 
     @State private var selectedFilmCast: Preview_cast_crew = Preview_cast_crew(cast: [], crew: [])
@@ -39,7 +40,7 @@ struct MovieResultList: View {
                     .buttonStyle(PlainButtonStyle())
                 }
             }
-            .sheet(isPresented: $isSheetActive, content: {FilmPage(film: selectedFilmDetail, cast: selectedFilmCast)})
+            .sheet(isPresented: $isSheetActive, content: {FilmPage(film: selectedFilmDetail, cast: selectedFilmCast, source: source)})
         }
         if !errorMessage.isEmpty {
             Text("Error occurred: \(errorMessage)")
@@ -108,7 +109,7 @@ struct MovieResultList_Previews: PreviewProvider {
             )
         ]
         
-        return MovieResultList(movie_list: sampleMovies)
+        return MovieResultList(movie_list: sampleMovies, source: "search")
             .environmentObject(SearchVar())
     }
 }

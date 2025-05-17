@@ -70,6 +70,13 @@ struct Data_film: Codable {
     let title: String
     let runtime: Int?
     let vote_average: Float?
+    let cinematography: Int
+    let editing: Int
+    let costume_makeup: Int
+    let lighting: Int
+    let staging: Int
+    let setting_props: Int
+    let narrative: String
 }
 
 struct Preview_genre: Codable, Hashable, Equatable, Identifiable {

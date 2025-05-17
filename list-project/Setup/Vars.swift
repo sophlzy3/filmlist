@@ -15,21 +15,20 @@ class Preferences: ObservableObject {
 
 class SupabaseVar: ObservableObject {
     static let shared = SupabaseVar()
-    @Published var supabaseURL = "https://wixystelcgjsbhvkwbin.supabase.co"
-    @Published var apiPublic = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpeHlzdGVsY2dqc2Jodmt3YmluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDMzODY2NDcsImV4cCI6MjAxODk2MjY0N30.jCZNPtYtWxiTqmOsFcNZ3JLuE4on-eSE7Gtab8EjHxU"
-    @Published var accessToken = "sbp_6aa74ababe7c6fc3953b00176d9490b604b7cd57"
+    @Published var supabaseURL = "https://dhafgmaskclyzowfpnho.supabase.co"
+    @Published var apiPublic = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRoYWZnbWFza2NseXpvd2ZwbmhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ2NzkxNTYsImV4cCI6MjA2MDI1NTE1Nn0.LeOWzc1yJjHJUEwHXN0jW7OR9wrp9pJv_slJi_OMGMA"
     
     private init() {}
 }
 
 class TMDBVar: ObservableObject {
-    @Published var searchURL: String = "https://api.themoviedb.org/3/search/movie?query="
+    @Published var searchURL: String = "https://api.themoviedb.org/3/search/movie"
     @Published var apiKey: String = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiZTI4YzAxNDMwNjBmMmIzNTI3NTk4YTlkODE2ZGUyOCIsIm5iZiI6MTY4ODc0OTE5MC40NDcsInN1YiI6IjY0YTg0NDg2YWYyZGE4MDEwY2FkZGRkNiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.i9HxA6bO3vipXOYYd3IXEf6WkmUD4O3iYHCnKCl46k0"
 }
 
 class SearchVar: ObservableObject {
     @Published var SearchText: String = "Pulp Fiction"
-    @Published var ButtonPosition: Bool = false
+    @Published var ButtonPosition: Bool = true
     @Published var optionChoice: String = "Title"
     @Published var optionColor: Color = .cyan
     @Published var isSearching: Bool = false
@@ -83,6 +82,11 @@ class AlertVars: ObservableObject {
         self.showToast = true
         self.toastMessage = title
         self.toastType = type
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            self.showToast = false
+        }
+        self.showToast = false
     }
 
 }

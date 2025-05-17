@@ -6,8 +6,6 @@
 - add links into description (markdown support for notes)
 - MUlTILANGAUGE SUPPORT IN SEARCH
 - add more search pages 
-- AlertToast not disappearing after adding movies
-    - alertToast disappears as background task after 3 seconds
 
 
 # FEATURE LIST

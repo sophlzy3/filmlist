@@ -91,59 +91,24 @@ struct LibraryMain: View {
         
     func destinationView(item: LibraryItem) -> some View {
 //    test code: return AnyView(destination(thing: "companies"))
-
         switch item {
         case .people:
-            return isLoading
-            ? AnyView(ProgressView())
-            : AnyView(ScrollView {
-                LazyGridPage(list: self.people) { listObject in
-                    GridPerson(person: listObject)
-                }
-            }.padding())
+            return AnyView(PeopleLibraryView())
             
         case .countries:
-            return isLoading
-            ? AnyView(ProgressView())
-            : AnyView(ScrollView {
-                LazyGridPage(list: self.countries) { listObject in
-                    GridCountry(country: listObject)
-                }
-            }.padding())
+            return AnyView(CountriesLibraryView())
             
         case .companies:
-            return isLoading
-            ? AnyView(ProgressView())
-            : AnyView(ScrollView {
-                LazyGridPage(list: self.companies) { listObject in
-                    GridCompany(company: listObject)
-                }
-            }.padding())
+            return AnyView(CompaniesLibraryView())
             
         case .genres:
-            return isLoading
-            ? AnyView(ProgressView())
-            : AnyView(ScrollView {
-                LazyGridPage(list: self.genres) { listObject in
-                    GridGenre(genre: listObject)
-                }
-            }.padding())
+            return AnyView(GenresLibraryView())
 
         case .titles:
-            return isLoading
-            ? AnyView(ProgressView())
-            : AnyView(ScrollView {
-                MovieResultList(movie_list: films)
-            }.padding())
-        
+            return AnyView(MovieTitlesView())
+
         case .lists:
-            return isLoading
-            ? AnyView(ProgressView())
-            : AnyView(ScrollView {
-                LazyGridPage(list: self.lists) { listObject in
-                    GridList(list: listObject)
-                }
-            }.padding())
+            return AnyView(ListsLibraryView())
         }
     }
 }

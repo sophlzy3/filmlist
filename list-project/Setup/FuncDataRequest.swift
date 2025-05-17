@@ -36,19 +36,36 @@ func requestData(from url: String) async throws -> Data {
 }
 
 func returnMovieSearch(_ inputString: String) async throws -> MovieSearchResult {
-    let urlString = "\(TMDBVar().searchURL)\(inputString)"
-    print(urlString)
-    
-    guard let encodedURLString = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
-        throw SearchError.invalidURL
+    guard var components = URLComponents(string: "https://api.themoviedb.org/3/search/movie") else {
+        throw URLError(.badURL)
     }
     
-    let movieData = try await requestData(from: encodedURLString)
-    let decoder = JSONDecoder()
-    let searchResponse = try decoder.decode(MovieSearchResult.self, from: movieData)
+    components.queryItems = [
+        URLQueryItem(name: "query", value: inputString),
+        URLQueryItem(name: "include_adult", value: "false"),
+        URLQueryItem(name: "language", value: "en-US"),
+        URLQueryItem(name: "page", value: "1"),
+    ]
     
-    return searchResponse
+    guard let url = components.url else {
+        throw URLError(.badURL)
+    }
+
+    var request = URLRequest(url: url)
+    request.httpMethod = "GET"
+    request.timeoutInterval = 10
+    request.allHTTPHeaderFields = [
+        "accept": "application/json",
+        "Authorization": "Bearer \(TMDBVar().apiKey)"
+    ]
+
+    let (data, _) = try await URLSession.shared.data(for: request)
+//    print(String(decoding: data, as: UTF8.self))
+    
+    let decoder = JSONDecoder()
+    return try decoder.decode(MovieSearchResult.self, from: data)
 }
+
 
 func returnMoviePreview(_ movieID: Int) async throws -> Preview_film {
     let movieURLString = "https://api.themoviedb.org/3/movie/\(movieID)"

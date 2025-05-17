@@ -10,29 +10,33 @@ import SwiftUI
 struct FilmPage: View {
     var film: Preview_film
     var cast: Preview_cast_crew
+    var source: String // "search" or "library"
+    
     var body: some View {
         ScrollView {
             TitlePreview(film: film, cast: cast)
                 .frame(height:450)
-            //detail text
             VStack (alignment:.leading) {
-                SynopsisPreview(film: film)
-                Spacer()
-                    .frame(height:20)
-                CastPreview(cast: cast)
-                //                    Divider()
+                if source == "search" {
+                    SynopsisPreview(film: film)
+                    Spacer()
+                        .frame(height:20)
+                    CastPreview(cast: cast)
+                    Divider()
+                }
+                FilmReview(filmID: film.id)
                 //                    AwardsPreview()
                 //                    Divider()
                 //                    IncludedPreview()
-                Divider()
+//                Divider()
                 //                    ReceptionPreview()
                 //                    Divider()
             }
             .padding(EdgeInsets(top:0, leading: 26, bottom: 0, trailing: 26))
-            
         }
     }
- }
+}
+
 
 // title struct
 struct TitlePreview: View {
@@ -377,14 +381,145 @@ struct IncludedPreview: View {
                         .font(.headline)
                         .foregroundColor(.black)
                         .fontWeight(.bold)
-                    Image(systemName:"chevron.right")
-                        .foregroundColor(.secondary)
+                        Image(systemName:"chevron.right")
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .padding(EdgeInsets(top:5, leading: 0, bottom: 5, trailing: 0))
+                
+                Text("included PREVIEW")
+            }
+        }
+    }
+
+    struct FilmReview: View {
+        var filmID: Int
+        @State private var cinematographyRating: Int = 0
+        @State private var editingRating: Int = 0
+        @State private var costumeMakeupRating: Int = 0
+        @State private var lightingRating: Int = 0
+        @State private var stagingRating: Int = 0
+        @State private var settingPropsRating: Int = 0
+        @State private var narrativeComment: String = ""
+        
+        func updateRating(field: String, value: Int, movieId: Int) async {
+            do {
+                let updateData: [String: Int] = [field: value]
+                try await DatabaseManager.shared.updateItem(
+                    database: "movies",
+                    conditions: [("eq", "id", movieId)],
+                    newValue: updateData
+                )
+            } catch {
+                print("Error updating rating: \(error)")
+            }
+        }
+
+        func updateNote(field: String, value: String, movieId: Int) async {
+            do {
+                let updateData: [String: String] = [field: value]
+                try await DatabaseManager.shared.updateItem(
+                    database: "movies",
+                    conditions: [("eq", "id", movieId)],
+                    newValue: updateData
+                )
+            } catch {
+                print("Error updating note: \(error)")
+            }
+        }
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text("Film Review")
+                // .font(.title)
+                .font(.headline)
+                .foregroundColor(.black)
+                .fontWeight(.bold)
+                .padding(EdgeInsets(top:5, leading: 0, bottom: 5, trailing: 0))
+            
+            RatingRow(title: "Cinematography", rating: $cinematographyRating) { newRating in
+                Task {
+                    await updateRating(field: "cinematography", value: newRating, movieId: filmID)
                 }
             }
-            .padding(EdgeInsets(top:5, leading: 0, bottom: 5, trailing: 0))
             
-            Text("included PREVIEW")
+            RatingRow(title: "Editing", rating: $editingRating) { newRating in
+                Task {
+                    await updateRating(field: "editing", value: newRating, movieId: filmID)
+                }
+            }
+            
+            RatingRow(title: "Costume / Makeup", rating: $costumeMakeupRating) { newRating in
+                Task {
+                    await updateRating(field: "costume_makeup", value: newRating, movieId: filmID)
+                }
+            }
+            
+            RatingRow(title: "Lighting", rating: $lightingRating) { newRating in
+                Task {
+                    await updateRating(field: "lighting", value: newRating, movieId: filmID)
+                }
+            }
+            
+            RatingRow(title: "Staging", rating: $stagingRating) { newRating in
+                Task {
+                    await updateRating(field: "staging", value: newRating, movieId: filmID)
+                }
+            }
+            
+            RatingRow(title: "Setting / Props", rating: $settingPropsRating) { newRating in
+                Task {
+                    await updateRating(field: "setting_props", value: newRating, movieId: filmID)
+                }
+            }
+            
+            VStack(alignment: .leading) {
+                Text("Narrative (Implicit / Symptomatic Meaning)")
+                    .font(.headline)
+                    .padding(.top, 16)
+                TextEditor(text: $narrativeComment)
+                    .frame(height: 100)
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.3)))
+                    .onChange(of: narrativeComment) { newValue in
+                        Task {
+                            await updateNote(field: "narrative", value: newValue, movieId: filmID)
+                        }
+                    }
+            }
         }
+    }
+}
+
+struct RatingRow: View {
+    let title: String
+    @Binding var rating: Int
+    let onRatingChanged: (Int) -> Void
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text(title)
+                .font(.headline)
+            HStack {
+                ForEach(1...5, id: \.self) { i in
+                    Image(systemName: i <= rating ? "star.fill" : "star")
+                        .foregroundColor(.yellow)
+                        .onTapGesture {
+                            rating = i
+                            onRatingChanged(i)
+                        }
+                }
+                if rating > 0 {
+                    Button(action: {
+                        rating = 0
+                        onRatingChanged(0)
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray)
+                    }
+                }
+            }
+        }
+        .padding(.vertical, 8)
     }
 }
 
@@ -490,7 +625,8 @@ struct FilmDetailPage_Previews: PreviewProvider {
                         known_for_department: "Directing"
                     )
                 ]
-            )
+            ),
+            source: "search"
         )
     }
 }
