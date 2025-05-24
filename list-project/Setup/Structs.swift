@@ -57,26 +57,28 @@ struct Preview_film: Codable {
 }
 
 // for supabase
-struct Data_film: Codable {
+struct Film_rating: Codable {
     let id: Int
-    let backdrop_path: String?
-    let budget: Int?
-    let imdb_id: String?
-    let overview: String?
-    let poster_path: String?
-    let original_title: String
-    let release_date: String?
-    let status: String? // eg "Released"
+    let cinematography: Float
+    let editing: Float
+    let costume_makeup: Float
+    let lighting: Float
+    let staging: Float
+    let setting_props: Float
+    let narrativeRating: Float
+    let narrativeComment: String
+    let libraryStatus: Int // 0 = not watched, 1 = watched
+    let whyWatch: String
+}
+
+struct Film_recs: Codable {
+    let id: Int
     let title: String
-    let runtime: Int?
-    let vote_average: Float?
-    let cinematography: Int
-    let editing: Int
-    let costume_makeup: Int
-    let lighting: Int
-    let staging: Int
-    let setting_props: Int
-    let narrative: String
+    let original_title: String
+    let overview: String
+    let poster_path: String?
+    let backdrop_path: String?
+    let release_date: String?
 }
 
 struct Preview_genre: Codable, Hashable, Equatable, Identifiable {

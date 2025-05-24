@@ -106,7 +106,7 @@ class DatabaseManager {
         }
     }
     
-    //    try await DatabaseManager.shared.fetchItem(database: "movies", ofType: Data_film.self, conditions: [("eq", "id", movieID)])
+    //    try await DatabaseManager.shared.fetchItem(database: "movies", ofType: Film_rating.self, conditions: [("eq", "id", movieID)])
     func fetchItem<T: Decodable>(database: String, ofType type: T.Type, conditions: [(String, String, URLQueryRepresentable)]) async throws -> [T] {
         do {
             let items = try await DatabaseManager.shared.fetchItem(
@@ -151,31 +151,33 @@ class SupabaseActions {
             // Fetch movie preview
             print("adding movie details ...")
             let movieResult = try await returnMoviePreview(id)
-            let movie = Data_film(
+            let movie = Film_rating(
                 id: movieResult.id,
-                backdrop_path: movieResult.backdrop_path,
-                budget: movieResult.budget,
-                imdb_id: movieResult.imdb_id,
-                overview: movieResult.overview,
-                poster_path: movieResult.poster_path,
-                original_title: movieResult.original_title,
-                release_date: movieResult.release_date,
-                status: movieResult.status,
-                title: movieResult.title,
-                runtime: movieResult.runtime,
-                vote_average: movieResult.vote_average,
-                cinematography: 0,
-                editing: 0,
-                costume_makeup: 0,
-                lighting: 0,
-                staging: 0,
-                setting_props: 0,
-                narrative: ""
+                // backdrop_path: movieResult.backdrop_path,
+                // budget: movieResult.budget,
+                // imdb_id: movieResult.imdb_id,
+                // overview: movieResult.overview,
+                // poster_path: movieResult.poster_path,
+                // original_title: movieResult.original_title,
+                // release_date: movieResult.release_date,
+                // status: movieResult.status,
+                // title: movieResult.title,
+                // runtime: movieResult.runtime,
+                // vote_average: movieResult.vote_average,
+                cinematography: 0.0,
+                editing: 0.0,
+                costume_makeup: 0.0,
+                lighting: 0.0,
+                staging: 0.0,
+                setting_props: 0.0,
+                narrativeRating: 0.0,
+                narrativeComment: "",
+                libraryStatus: 0,
+                whyWatch: ""
                 )
                         
-            try await DatabaseManager.shared.insertItem(database: "movies", item: movie)
+            // try await DatabaseManager.shared.insertItem(database: "movies", item: movie)
             try await DatabaseManager.shared.insertItem(database: "movies_preview", item: filmPreview)
-
             
             // add genre
             for genre in movieResult.genres {
@@ -282,20 +284,6 @@ class SupabaseActions {
         }
     }
     
-//    func fetchItem<T: Decodable>(database: String, ofType type: T.Type, conditions: [(String, String, URLQueryRepresentable)]) async throws -> [T] {
-//        do {
-//            let items = try await DatabaseManager.shared.fetchItem(
-//                database: database,
-//                ofType: type,
-//                conditions: conditions
-//            )
-//            return items
-//        } catch {
-//            print("Error fetching items: \(error)")
-//            throw error
-//        }
-//    }
-//    
    func upsertMovieNote(note: String, listID: Int, movieID: Int) async throws {
        do {
            let movie_list = Rel_movie_list(movie_id: movieID, list_id: listID, note: note)
@@ -308,16 +296,15 @@ class SupabaseActions {
     func deleteMovie(id: Int) async throws {
     do {
         // 1. Delete relations (child rows) first
-        try await DatabaseManager.shared.deleteItems(database: "movie_person", conditions: [("eq", "movie_id", id)])
-        try await DatabaseManager.shared.deleteItems(database: "movie_genre", conditions: [("eq", "movie_id", id)])
-        try await DatabaseManager.shared.deleteItems(database: "movie_company", conditions: [("eq", "movie_id", id)])
-        try await DatabaseManager.shared.deleteItems(database: "movie_country", conditions: [("eq", "movie_id", id)])
-        try await DatabaseManager.shared.deleteItems(database: "movie_language", conditions: [("eq", "movie_id", id)])
-        try await DatabaseManager.shared.deleteItems(database: "movie_list", conditions: [("eq", "movie_id", id)])
-
+        try? await DatabaseManager.shared.deleteItems(database: "movie_person", conditions: [("eq", "movie_id", id)])
+        try? await DatabaseManager.shared.deleteItems(database: "movie_genre", conditions: [("eq", "movie_id", id)])
+        try? await DatabaseManager.shared.deleteItems(database: "movie_company", conditions: [("eq", "movie_id", id)])
+        try? await DatabaseManager.shared.deleteItems(database: "movie_country", conditions: [("eq", "movie_id", id)])
+        try? await DatabaseManager.shared.deleteItems(database: "movie_language", conditions: [("eq", "movie_id", id)])
+        try? await DatabaseManager.shared.deleteItems(database: "movie_list", conditions: [("eq", "movie_id", id)])
         // 2. Delete movie from preview and main table
-        try await DatabaseManager.shared.deleteItems(database: "movies_preview", conditions: [("eq", "id", id)])
-        try await DatabaseManager.shared.deleteItems(database: "movies", conditions: [("eq", "id", id)])
+        try? await DatabaseManager.shared.deleteItems(database: "movies_preview", conditions: [("eq", "id", id)])
+        try? await DatabaseManager.shared.deleteItems(database: "movies", conditions: [("eq", "id", id)])
             
         print("Successfully deleted id \(id).")
         } catch {

@@ -278,84 +278,34 @@ struct SearchOption: View {
     @EnvironmentObject var searchvar: SearchVar
     @EnvironmentObject var preferences: Preferences
     
+    let options = ["Title", "TV", "People", "Companies"]
+    
     var body: some View {
         ScrollView(.horizontal) {
-            ZStack{                
-                HStack (spacing:0){
-                    Button (action: {
-                        searchvar.optionChoice = "Title"
-                    }){
-                        ZStack{
-                            if searchvar.optionChoice == "Title" {
-                                RoundedRectangle(cornerRadius: 15)
-                                    .fill(preferences.accentColor)
-                                Text("Title")
-                                    .foregroundColor(.white)
-                                    .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
-                            }else{
-                                Text("Title")
-                                    .foregroundColor(.black)
-                                    .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
-                            }
-                        }
-                    }
-                    
-                    Button (action:{
-                        searchvar.optionChoice = "Crew"
-                    }){
-                        ZStack{
-                            if searchvar.optionChoice == "Crew" {
-                                RoundedRectangle(cornerRadius: 15)
-                                    .fill(preferences.accentColor)
-                                Text("Crew")
-                                    .foregroundColor(.white)
-                                    .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
-                            }else{
-                                Text("Crew")
-                                    .foregroundColor(.black)
-                                    .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
-                            }
-                        }
-                    }
-                    
-                    Button (action:{
-                        searchvar.optionChoice = "Companies"
-                    }){
-                        ZStack{
-                            if searchvar.optionChoice == "Companies" {
-                                RoundedRectangle(cornerRadius: 15)
-                                    .fill(preferences.accentColor)
-                                Text("Companies")
-                                    .foregroundColor(.white)
-                                    .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
-                            }else{
-                                Text("Companies")
-                                    .foregroundColor(.black)
-                                    .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
-                            }
-                        }
-                    }
-                    
-                    Button (action:{
-                        searchvar.optionChoice = "Awards"
-                    }){
-                        ZStack{
-                            if searchvar.optionChoice == "Awards" {
-                                RoundedRectangle(cornerRadius: 15)
-                                    .fill(preferences.accentColor)
-                                Text("Awards")
-                                    .foregroundColor(.white)
-                                    .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
-                            }else{
-                                Text("Awards")
-                                    .foregroundColor(.black)
-                                    .padding(EdgeInsets(top:5, leading: 10, bottom: 5, trailing: 10))
+            ZStack {                
+                HStack(spacing: 0) {
+                    ForEach(options, id: \.self) { option in
+                        Button(action: {
+                            searchvar.optionChoice = option
+                        }) {
+                            ZStack {
+                                if searchvar.optionChoice == option {
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .fill(preferences.accentColor)
+                                    Text(option)
+                                        .foregroundColor(.white)
+                                        .padding(EdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10))
+                                } else {
+                                    Text(option)
+                                        .foregroundColor(.black)
+                                        .padding(EdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10))
+                                }
                             }
                         }
                     }
                 }
                 .padding(3)
-                .frame(width:.infinity,height:40)
+                .frame(width: .infinity, height: 40)
                 .edgesIgnoringSafeArea(.all)
             }
         }
@@ -369,7 +319,11 @@ struct SearchTMDB: View {
         if searchvar.optionChoice == "Title" {
             MovieResultList(movie_list: searchvar.searchResults.results, source: "search")
                 .environmentObject(searchvar)
-        } else {
+        } else if searchvar.optionChoice == "TV" {
+            Text("SEARCHING IN TMDB")
+        } else if searchvar.optionChoice == "People" {
+            Text("SEARCHING IN TMDB")
+        } else if searchvar.optionChoice == "Companies" {
             Text("SEARCHING IN TMDB")
         }
     }
@@ -438,7 +392,7 @@ struct SearchLibrary: View {
 struct SearchView_Previews: PreviewProvider {
     static var previews: some View {
         SearchView()
-           .environmentObject(SearchVar())
+            .environmentObject(SearchVar())
            .environmentObject(Preferences())
     }
 }

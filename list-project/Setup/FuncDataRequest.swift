@@ -96,40 +96,19 @@ func returnCastDetail(_ inputID: Int) async throws -> Preview_cast_crew {
     }
 }
 
-//"adult": false,
-//"gender": 1,
-//"id": 2227,
-//"known_for_department": "Acting",
-//"name": "Nicole Kidman",
-//"original_name": "Nicole Kidman",
-//"popularity": 63.721,
-//"profile_path": "/m56BJJsW3uynaZDwtFCFeoDgH5o.jpg",
-//"cast_id": 3,
-//"character": "Grace Margaret Mulligan",
-//"credit_id": "52fe4251c3a36847f8014c93",
-//"order": 0
+func returnRecommendations(_ inputID: Int) async throws -> Film_recs {
+    let URLString = "https://api.themoviedb.org/3/movie/\(inputID)/recommendations?language=en-US&page=1"
 
-
-//"adult": false,
-//"gender": 2,
-//"id": 42,
-//"known_for_department": "Directing",
-//"name": "Lars von Trier",
-//"original_name": "Lars von Trier",
-//"popularity": 16.416,
-//"profile_path": "/vyLqx52Fj5E5wN6gqJtqOyWIfa6.jpg",
-//"credit_id": "52fe4251c3a36847f8014c8f",
-//"department": "Writing",
-//"job": "Screenplay"
-
-//"adult": false,
-//"gender": 2,
-//"id": 42,
-//"known_for_department": "Directing",
-//"name": "Lars von Trier",
-//"original_name": "Lars von Trier",
-//"popularity": 16.416,
-//"profile_path": "/vyLqx52Fj5E5wN6gqJtqOyWIfa6.jpg",
-//"credit_id": "52fe4251c3a36847f8014c89",
-//"department": "Directing",
-//"job": "Director"
+    guard let encodedURLString = URLString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+        throw SearchError.invalidURL
+    }
+    
+    let data = try await requestData(from: encodedURLString)
+    let decoder = JSONDecoder()
+    do {
+        let finalCast = try decoder.decode(Film_recs.self, from: data)
+        return finalCast
+    } catch {
+        throw SearchError.responseDecodingError(error)
+    }
+}

@@ -13,6 +13,7 @@ struct MovieResultList: View {
     @State private var isSearching: Bool = false
     @State private var isSheetActive = false
     @State private var errorMessage: String = ""
+    @State private var selectedFilmRecs: [Film_recs]? = nil
     
     var movie_list: [ReturnedMovie]
     var source: String // "search" or "library"
@@ -40,8 +41,15 @@ struct MovieResultList: View {
                     .buttonStyle(PlainButtonStyle())
                 }
             }
-            .sheet(isPresented: $isSheetActive, content: {FilmPage(film: selectedFilmDetail, cast: selectedFilmCast, source: source)})
+            .sheet(isPresented: $isSheetActive, content: {
+                FilmPage(film: selectedFilmDetail, cast: selectedFilmCast, source: source, recs: selectedFilmRecs)
+                    .onAppear {
+                        loadRecommendations()
+                    }
+            })
         }
+        Spacer()
+            .frame(height: 50)
         if !errorMessage.isEmpty {
             Text("Error occurred: \(errorMessage)")
                 .foregroundColor(.red)
@@ -77,6 +85,25 @@ struct MovieResultList: View {
                         self.errorMessage = "An unexpected error occurred: \(error.localizedDescription)"
                     }
                 }
+            }
+        }
+    }
+    
+    private func loadRecommendations() {
+        var isLoadingRecs = false
+        
+        Task {
+            isLoadingRecs = true
+            do {
+                let recommendation = try await returnRecommendations(selectedFilmDetail.id)
+                DispatchQueue.main.async {
+                    print(recommendation)
+                    self.selectedFilmRecs = [recommendation]
+                    isLoadingRecs = false
+                }
+            } catch {
+                print("Error loading recommendations: \(error)")
+                isLoadingRecs = false
             }
         }
     }

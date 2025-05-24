@@ -99,9 +99,56 @@ struct FilmBlock: View {
                       
                 }
                 .padding(EdgeInsets(top: 40, leading: 20, bottom: 20, trailing: 40))
-
             }
         }
+    }
+}
+
+struct RecBlock: View {
+    var film: Film_recs
+    var body: some View {
+        let imageURL = URL(string: "https://image.tmdb.org/t/p/original/" + (film.backdrop_path ?? ""))!
+            ZStack (alignment: .bottomLeading){
+                AsyncImage(url: imageURL) { phase in
+                    switch phase {
+                    case .empty:
+                        ProgressView()
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .edgesIgnoringSafeArea(.horizontal)
+                            .clipped()
+                            .foregroundColor(.secondary)
+                    case .failure:
+                        Color(UIColor.systemGray3)
+                    @unknown default:
+                        EmptyView()
+                    }
+                }
+                
+                Rectangle()
+                    .fill(Color.black.opacity(0.25))
+                
+                VStack (alignment:.leading){
+                    Text(film.title)
+                        .foregroundColor(.white)
+                        .font(.system(size: 25))
+                        .fontWeight(.bold)
+                        .lineLimit(2)
+                        .truncationMode(.tail)
+                        .frame(width:.infinity)
+                    Spacer()
+                        .frame(height:10)
+                    
+                    Text(film.release_date?.prefix(4) ?? "Date Unknown")
+                        .foregroundColor(.white)
+                        .fontWeight(.bold)
+                        .font(.system(size:15))
+                      
+                }
+                .padding(EdgeInsets(top: 40, leading: 20, bottom: 20, trailing: 40))
+            }
     }
 }
 

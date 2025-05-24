@@ -406,7 +406,7 @@ public struct AlertToastModifier: ViewModifier{
     @Binding var isPresenting: Bool
     
     ///Duration time to display the alert
-    @State var duration: Double = 2
+    @State var duration: Float = 2
     
     ///Tap to dismiss alert
     @State var tapToDismiss: Bool = true
@@ -590,7 +590,7 @@ public struct AlertToastModifier: ViewModifier{
                 }
             }
             workItem = task
-            DispatchQueue.main.asyncAfter(deadline: .now() + duration, execute: task)
+            DispatchQueue.main.asyncAfter(deadline: .now() + TimeInterval(duration), execute: task)
         }
     }
 }
@@ -678,7 +678,7 @@ public extension View{
     ///   - show: Binding<Bool>
     ///   - alert: () -> AlertToast
     /// - Returns: `AlertToast`
-    func toast(isPresenting: Binding<Bool>, duration: Double = 2, tapToDismiss: Bool = true, offsetY: CGFloat = 0, alert: @escaping () -> AlertToast, onTap: (() -> ())? = nil, completion: (() -> ())? = nil) -> some View{
+    func toast(isPresenting: Binding<Bool>, duration: Float = 2, tapToDismiss: Bool = true, offsetY: CGFloat = 0, alert: @escaping () -> AlertToast, onTap: (() -> ())? = nil, completion: (() -> ())? = nil) -> some View{
         modifier(AlertToastModifier(isPresenting: isPresenting, duration: duration, tapToDismiss: tapToDismiss, offsetY: offsetY, alert: alert, onTap: onTap, completion: completion))
     }
     

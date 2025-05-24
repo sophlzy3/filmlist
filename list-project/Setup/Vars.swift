@@ -27,8 +27,8 @@ class TMDBVar: ObservableObject {
 }
 
 class SearchVar: ObservableObject {
-    @Published var SearchText: String = "Pulp Fiction"
-    @Published var ButtonPosition: Bool = true
+    @Published var SearchText: String = "Dogville"
+    @Published var ButtonPosition: Bool = false //true for library, false for tmdb
     @Published var optionChoice: String = "Title"
     @Published var optionColor: Color = .cyan
     @Published var isSearching: Bool = false
