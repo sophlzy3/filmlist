@@ -39,12 +39,12 @@ If you’re tired of cluttered movie databases or want to keep your own personal
 
 1. **Clone the repo**:
     ```bash
-    git clone https://github.com/sophlzy3/FilmList.git
+    git clone https://github.com/sophlzy3/film-list.git
     cd FilmList
     ```
 2. **Install dependencies** (if using Swift Package Manager):
     ```bash
-    open FilmList.xcodeproj
+    open film-list.xcodeproj
     ```
 3. **Configure TMDB API Key**:
     - Add your TMDB API key in `Config.swift` (not committed to repo).
