@@ -20,27 +20,27 @@ struct FilmPage: View {
                 TitlePreview(film: film, cast: cast)
                     .frame(height:450)
             VStack (alignment: .leading) {
-//                if film_data?.libraryStatus == 0 && showLibraryStatusAlert {
-//                    HStack{
-//                        Spacer()
-//                            .frame(width: .infinity)
-//                        LibraryStatusAlert(film: film, isPresented: $showLibraryStatusAlert)
-//                        Spacer()
-//                            .frame(width: .infinity)
-//                    }
-//                }
+                if film_data?.isWatched == 0 && showLibraryStatusAlert {
+                    HStack{
+                        Spacer()
+                            .frame(width: .infinity)
+                        LibraryStatusAlert(film: film, isPresented: $showLibraryStatusAlert)
+                        Spacer()
+                            .frame(width: .infinity)
+                    }
+                }
 //
-//                URLButtons(film: film)
+                URLButtons(film: film)
 //
-//                if let filmData = film_data {
-//                    FilmReview(film_data: filmData)
-//                }
-//                
-//                SynopsisPreview(film: film)
-//                Spacer()
-//                    .frame(height:20)
-//                CastPreview(cast: cast)
-//                Divider()
+                if let filmData = film_data {
+                    FilmReview(film_data: filmData)
+                }
+                
+                SynopsisPreview(film: film)
+                Spacer()
+                    .frame(height:20)
+                CastPreview(cast: cast)
+                Divider()
                 //                    AwardsPreview()
                 //                    Divider()
                 if recs != nil {
@@ -267,22 +267,33 @@ struct LibraryStatusAlert: View {
     
     func updateRating(field: String, value: Int, movieId: Int) async {
         do {
-            let updateData: [String: Int] = [field: value]
-            try await DatabaseManager.shared.updateItem(
-                database: "movies",
-                conditions: [("eq", "id", movieId)],
-                newValue: updateData
+                let updateData: [String: Int] = [field: value]
+                try await DatabaseManager.shared.insertItem(
+                    database: "movies",
+                    item: ["id": movieId, field: value]
             )
         } catch {
-            print("Error updating rating: \(error)")
+            do {
+                try await DatabaseManager.shared.upsertItem(
+                    database: "movies",
+                    item: ["id": movieId, field: value],
+                    onConflict: "id"
+                )
+            } catch {
+                print("Error updating rating: \(error)")
+            }
         }
     }
 }
 
 struct URLButtons: View {
     var film: Preview_film
-    var letterboxdId: String {
-        return film.title.lowercased().replacingOccurrences(of: " ", with: "-")
+    var titleSearchStr: String {
+        let raw = film.title
+        let encoded = raw
+            .lowercased()
+            .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        return encoded
     }
     
     var body: some View {
@@ -300,9 +311,9 @@ struct URLButtons: View {
                 }
             }
             Spacer()
-                .frame(width: 20)
+                .frame(width: 5)
             // LETTERBOXD
-            if let url = URL(string: "https://letterboxd.com/film/\(letterboxdId)") {
+            if let url = URL(string: "https://letterboxd.com/search/\(titleSearchStr)/") {
                 Link(destination: url) {
                     HStack {
                         Image("logo_letterboxd")
@@ -314,6 +325,18 @@ struct URLButtons: View {
                 }
             }
             Spacer()
+                .frame(width: 5)
+            if let url = URL(string: "https://shotonwhat.com/?s=\(titleSearchStr)/") {
+                Link(destination: url) {
+                    HStack {
+                        Image("logo_shotonwhat")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 50)
+                            .clipShape(RoundedRectangle(cornerRadius: 5))
+                    }
+                }
+            }
         }
     }
 }
@@ -878,7 +901,7 @@ struct FilmDetailPage_Previews: PreviewProvider {
                 setting_props: 0.0,
                 narrativeRating: 0.0,
                 narrativeComment: "",
-                libraryStatus: 0,
+                isWatched: 0,
                 whyWatch: ""
             ),
             recs: similar

@@ -320,7 +320,8 @@ struct SearchTMDB: View {
             MovieResultList(movie_list: searchvar.searchResults.results, source: "search")
                 .environmentObject(searchvar)
         } else if searchvar.optionChoice == "TV" {
-            Text("SEARCHING IN TMDB")
+//            TVResultList(tv_list: searchvar.searchResults.results, source: "search")
+//                .environmentObject(searchvar)
         } else if searchvar.optionChoice == "People" {
             Text("SEARCHING IN TMDB")
         } else if searchvar.optionChoice == "Companies" {

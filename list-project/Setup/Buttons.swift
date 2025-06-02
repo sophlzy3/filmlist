@@ -82,6 +82,9 @@ struct ButtonRow: View {
                     toastMessage = "Adding movie"
                     showToast = true
                     toastType = .loading
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                        showToast = false
+                    }
                 }
                 
                 try await SupabaseActions().addMovieDetails(id: movie.id, filmPreview: movie)
@@ -91,6 +94,9 @@ struct ButtonRow: View {
                     toastMessage = "Movie Added"
                     showToast = true
                     toastType = .complete(.green)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                        showToast = false
+                    }
                 }
             } catch {
                 let errorString = String(describing: error)
@@ -99,6 +105,9 @@ struct ButtonRow: View {
                         toastMessage = "Movie Already in Library"
                         showToast = true
                         toastType = .error(.red)
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                        showToast = false
                     }
                 } else {
                     print(error)

@@ -22,3 +22,4 @@
     - dynamic typein settings?
     - https://developer.apple.com/videos/play/wwdc2020/10175/ at around 24:00
 
+- awards (*later feature!*)

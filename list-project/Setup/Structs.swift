@@ -67,7 +67,7 @@ struct Film_rating: Codable {
     let setting_props: Float
     let narrativeRating: Float
     let narrativeComment: String
-    let libraryStatus: Int // 0 = not watched, 1 = watched
+    let isWatched: Int // 0 = not watched, 1 = watched
     let whyWatch: String
 }
 

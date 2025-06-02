@@ -172,12 +172,13 @@ class SupabaseActions {
                 setting_props: 0.0,
                 narrativeRating: 0.0,
                 narrativeComment: "",
-                libraryStatus: 0,
+                isWatched: 0,
                 whyWatch: ""
                 )
                         
             // try await DatabaseManager.shared.insertItem(database: "movies", item: movie)
             try await DatabaseManager.shared.insertItem(database: "movies_preview", item: filmPreview)
+            try await DatabaseManager.shared.insertItem(database: "movies", item: movie)
             
             // add genre
             for genre in movieResult.genres {
