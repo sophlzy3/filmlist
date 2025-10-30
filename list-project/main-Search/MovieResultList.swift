@@ -42,7 +42,13 @@ struct MovieResultList: View {
                 }
             }
             .sheet(isPresented: $isSheetActive, content: {
-                FilmPage(film: selectedFilmDetail, cast: selectedFilmCast, source: source, recs: selectedFilmRecs)
+                FilmPage(
+                    film: selectedFilmDetail,
+                    cast: selectedFilmCast,
+                    source: source,
+                    film_data: nil ?? Film_rating(id: selectedFilmDetail.id, cinematography: 0.0, editing: 0.0, costume_makeup: 0.0, lighting: 0.0, staging: 0.0, setting_props: 0.0, narrativeRating: 0.0, narrativeComment: "", isWatched: 0, whyWatch: ""),
+                    recs: selectedFilmRecs
+                )
                     .onAppear {
                         loadRecommendations()
                     }

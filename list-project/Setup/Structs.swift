@@ -71,7 +71,7 @@ struct Film_rating: Codable {
     let whyWatch: String
 }
 
-struct Film_recs: Codable {
+struct Film_recs: Codable, Identifiable {
     let id: Int
     let title: String
     let original_title: String

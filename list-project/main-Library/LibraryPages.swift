@@ -26,12 +26,13 @@ struct MovieTitlesView: View {
             print("library titles page")
             Task {
                 if movies.isEmpty {
+                    print("start fetching library titles ...")
                     let fetched = try await DatabaseManager.shared.fetchItem(
                         database: "movies_preview",
                         ofType: ReturnedMovie.self,
                         conditions: [],
                     )
-                    print(fetched)
+                    print("fetched library titles")
                     movies = fetched
                     isLoading = false
                 }

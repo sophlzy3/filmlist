@@ -6,52 +6,244 @@
 //
 
 import SwiftUI
+import UIKit
 
+// MARK: - Film Header View
+private struct FilmHeaderView: View {
+    let film: Preview_film
+    let source: String
+    @Binding var isSheetActive: Bool
+    
+    var body: some View {
+        VStack {
+            AsyncImage(url: URL(string: "https://image.tmdb.org/t/p/original\(film.backdrop_path)" ?? "")) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(height: 200)
+                    .clipped()
+            } placeholder: {
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(height: 200)
+            }
+            
+            HStack {
+                AsyncImage(url: URL(string: "https://image.tmdb.org/t/p/w500\(film.poster_path)")) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 100)
+                        .cornerRadius(8)
+                } placeholder: {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(width: 100)
+                        .cornerRadius(8)
+                }
+                
+                VStack(alignment: .leading) {
+                    Text(film.title)
+                        .font(.title2)
+                        .bold()
+                    Text(film.original_title)
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                    Text(film.release_date ?? "Date Unknown")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                }
+                Spacer()
+            }
+            .padding()
+        }
+    }
+}
+
+// MARK: - Film Info View
+private struct FilmInfoView: View {
+    let film: Preview_film
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Overview")
+                .font(.headline)
+            Text(film.overview ?? "No Overview")
+                .font(.body)
+            
+            Text("Genres")
+                .font(.headline)
+            Text(film.genres.map { $0.name }.joined(separator: ", "))
+                .font(.body)
+            
+            Text("Runtime")
+                .font(.headline)
+            Text("\(film.runtime) minutes")
+                .font(.body)
+        }
+        .padding()
+    }
+}
+
+// MARK: - Cast View
+private struct CastView: View {
+    let cast: Preview_cast_crew
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text("Cast")
+                .font(.headline)
+                .padding(.horizontal)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 15) {
+                    ForEach(cast.cast, id: \Root.id) { person in
+                        VStack {
+                            AsyncImage(url: URL(string: "https://image.tmdb.org/t/p/w500\(person.profile_path)")) { image in
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 100, height: 150)
+                                    .cornerRadius(8)
+                            } placeholder: {
+                                Rectangle()
+                                    .fill(Color.gray.opacity(0.3))
+                                    .frame(width: 100, height: 150)
+                                    .cornerRadius(8)
+                            }
+                            Text(person.original_name)
+                                .font(.caption)
+                                .lineLimit(1)
+                            Text(person.cha ?? "")
+                                .font(.caption2)
+                                .foregroundColor(.gray)
+                                .lineLimit(1)
+                        }
+                        .frame(width: 100)
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+    }
+}
+
+// MARK: - Recommendations View
+private struct RecommendationsView: View {
+    let recs: [Film_recs]
+    @Binding var isSheetActive: Bool
+    @Binding var isLoading: Bool
+    @Binding var selectedFilmDetail: Preview_film?
+    @Binding var selectedFilmCast: Preview_cast_crew?
+    @Binding var selectedFilmRecs: [Film_recs]?
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text("Recommendations")
+                .font(.headline)
+                .padding(.horizontal)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 15) {
+                    ForEach(recs) { movie in
+                        Button(action: {
+                            Task {
+                                isLoading = true
+                                isSheetActive = true
+                                let (film, cast, recs) = try await DatabaseManager.shared.fetchMovieDetails(movieId: movie.id)
+                                selectedFilmDetail = film
+                                selectedFilmCast = cast
+                                selectedFilmRecs = recs
+                                isLoading = false
+                            }
+                        }, label: {
+                            VStack {
+                                AsyncImage(url: URL(string: "https://image.tmdb.org/t/p/w500\(movie.poster_path)")) { image in
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 100, height: 150)
+                                        .cornerRadius(8)
+                                } placeholder: {
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.3))
+                                        .frame(width: 100, height: 150)
+                                        .cornerRadius(8)
+                                }
+                                Text(movie.title)
+                                    .font(.caption)
+                                    .lineLimit(1)
+                                Text(movie.release_date)
+                                    .font(.caption2)
+                                    .foregroundColor(.gray)
+                            }
+                            .frame(width: 100)
+                        })
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+    }
+}
+
+// MARK: - Main Film Page View
 struct FilmPage: View {
-    var film: Preview_film
-    var cast: Preview_cast_crew
-    var source: String // "search" or "library"
-    var film_data: Film_rating?
-    var recs: [Film_recs]?
-    @State private var showLibraryStatusAlert = true
+    let film: Preview_film
+    let cast: Preview_cast_crew
+    let source: String
+    let film_data: Film_rating?
+    let recs: [Film_recs]
+    
+    
+    @State private var isSheetActive = false
+    @State private var isLoading = false
+    @State private var selectedFilmDetail: Preview_film?
+    @State private var selectedFilmCast: Preview_cast_crew?
+    @State private var selectedFilmRecs: [Film_recs]?
     
     var body: some View {
         ScrollView {
-                TitlePreview(film: film, cast: cast)
-                    .frame(height:450)
-            VStack (alignment: .leading) {
-                if film_data?.isWatched == 0 && showLibraryStatusAlert {
-                    HStack{
-                        Spacer()
-                            .frame(width: .infinity)
-                        LibraryStatusAlert(film: film, isPresented: $showLibraryStatusAlert)
-                        Spacer()
-                            .frame(width: .infinity)
-                    }
-                }
-//
-                URLButtons(film: film)
-//
-                if let filmData = film_data {
-                    FilmReview(film_data: filmData)
-                }
-                
-                SynopsisPreview(film: film)
-                Spacer()
-                    .frame(height:20)
-                CastPreview(cast: cast)
-                Divider()
-                //                    AwardsPreview()
-                //                    Divider()
-                if recs != nil {
-                    RecommendationPreview(list: recs!)
-                }
-                //                Divider()
-                //                    ReceptionPreview()
-                //                    Divider()
+            VStack(spacing: 20) {
+                FilmHeaderView(film: film, source: source, isSheetActive: $isSheetActive)
+                FilmInfoView(film: film)
+                CastView(cast: cast)
+                RecommendationsView(
+                    recs: recs,
+                    isSheetActive: $isSheetActive,
+                    isLoading: $isLoading,
+                    selectedFilmDetail: $selectedFilmDetail,
+                    selectedFilmCast: $selectedFilmCast,
+                    selectedFilmRecs: $selectedFilmRecs
+                )
             }
-            .padding(EdgeInsets(top:0, leading: 26, bottom: 0, trailing: 26))
-
+        }
+        .sheet(isPresented: $isSheetActive) {
+            if isLoading {
+                ProgressView()
+            } else if let selectedFilm = selectedFilmDetail,
+                      let selectedCast = selectedFilmCast,
+                      let selectedRecs = selectedFilmRecs {
+                FilmPage(
+                    film: selectedFilm,
+                    cast: selectedCast,
+                    source: "library",
+                    film_data: Film_rating(
+                        id: selectedFilm.id,
+                        cinematography: 0.0,
+                        editing: 0.0,
+                        costume_makeup: 0.0,
+                        lighting: 0.0,
+                        staging: 0.0,
+                        setting_props: 0.0,
+                        narrativeRating: 0.0,
+                        narrativeComment: "",
+                        isWatched: 0,
+                        whyWatch: ""
+                    ),
+                    recs: selectedRecs
+                )
+            }
         }
     }
 }
@@ -326,10 +518,23 @@ struct URLButtons: View {
             }
             Spacer()
                 .frame(width: 5)
+            
             if let url = URL(string: "https://shotonwhat.com/?s=\(titleSearchStr)/") {
                 Link(destination: url) {
                     HStack {
                         Image("logo_shotonwhat")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 50)
+                            .clipShape(RoundedRectangle(cornerRadius: 5))
+                    }
+                }
+            }
+
+            if let url = URL(string: "https://film-grab.com/?s=\(titleSearchStr)/") {
+                Link(destination: url) {
+                    HStack {
+                        Image("logo_filmgrab")
                             .resizable()
                             .scaledToFit()
                             .frame(height: 50)
@@ -739,19 +944,98 @@ struct RatingRow: View {
 struct RecommendationPreview: View {
     var list: [Film_recs] = []
     var f = 1.8
+    var selectedFilmDetail: Preview_film = Preview_film(backdrop_path: "", budget: 0, genres: [], id: -1, imdb_id: "", overview: "", poster_path: "", production_companies: [], production_countries: [], original_title: "", release_date: "", spoken_languages: [], status: "", title: "", runtime: -1, vote_average: -1.0)
+    var selectedFilmCast: Preview_cast_crew = Preview_cast_crew(cast: [], crew: [])
+    var selectedFilmRecs: [Film_recs] = []
+    var source: String = ""
+    
     @State private var isSheetActive = false
+    @State private var isLoading = false
+    
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack {
-                ForEach(list, id: \.id) { movie in
+                ForEach(list) { movie in
                     Button(action: {
-                        //                        isSheetActive = true
-                        //                        MovieDetails(movie.id)
+                        Task {
+                            isLoading = true
+                            isSheetActive = true
+                            let (film, cast, recs) = try await DatabaseManager.shared.fetchMovieDetails(movieId: movie.id)
+                            selectedFilmDetail = film
+                            selectedFilmCast = cast
+                            selectedFilmRecs = recs
+                            isLoading = false
+                        }
                     }, label: {
-                        RecBlock(film: movie)
-                            .frame(width: CGFloat(160*f), height: CGFloat(90*f))
+                        VStack {
+                            if let backdropPath = movie.backdrop_path {
+                                let imageURL = URL(string: "https://image.tmdb.org/t/p/original/\(backdropPath)")!
+                                AsyncImage(url: imageURL) { phase in
+                                    switch phase {
+                                    case .empty:
+                                        ProgressView()
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                            .clipped()
+                                    case .failure:
+                                        Color(UIColor.systemGray3)
+                                    @unknown default:
+                                        EmptyView()
+                                    }
+                                }
+                            }
+                            
+                            VStack(alignment: .leading) {
+                                Text(movie.title)
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 25))
+                                    .fontWeight(.bold)
+                                    .lineLimit(2)
+                                    .truncationMode(.tail)
+                                    .frame(width: .infinity)
+                                
+                                Text(movie.release_date?.prefix(4) ?? "Date Unknown")
+                                    .foregroundColor(.white)
+                                    .fontWeight(.bold)
+                                    .font(.system(size: 15))
+                            }
+                            .padding()
+                        }
+                        .frame(width: CGFloat(160*f), height: CGFloat(90*f))
+                        .background(Color.black.opacity(0.25))
                     })
+                    .sheet(isPresented: $isSheetActive) {
+                        if isLoading {
+                            ProgressView("Loading...")
+                        } else {
+                            FilmPage(film: selectedFilmDetail, cast: selectedFilmCast, source: source, recs: selectedFilmRecs)
+                        }
+                    }
                 }
+            }
+        }
+    }
+
+    mutating func openMovie(movieId: Int) {
+        isSheetActive = true
+        isLoading = true
+        Task {
+            do {
+                let movie = try await returnMoviePreview(movieId)
+                let cast = try await returnCastDetail(movieId)
+                let recs = try await returnRecommendations(movieId)
+                
+                await MainActor.run {
+                    selectedFilmDetail = movie
+                    selectedFilmCast = cast
+                    selectedFilmRecs = [recs]
+                    isLoading = false
+                }
+            } catch {
+                print("Error loading movie details: \(error)")
+                isLoading = false
             }
         }
     }
@@ -788,122 +1072,124 @@ struct FilmDetailPage_Previews: PreviewProvider {
             release_date: "1996-07-05"
         )
     ]
+    
+    static let previewGenres = [
+        Preview_genre(id: 80, name: "Crime"),
+        Preview_genre(id: 18, name: "Drama"),
+        Preview_genre(id: 53, name: "Thriller")
+    ]
+    
+    static let previewCompanies = [
+        Preview_company(id: 5975, logo_path: "/vvjgoKygWWYZvYyidT3RmOCq5If.png", name: "YLE", origin_country: "FI"),
+        Preview_company(id: 76, logo_path: "/nebkQYtQKhZyHJfh5v0oGpNbPzu.png", name: "Zentropa Entertainments", origin_country: "DK")
+    ]
+    
+    static let previewCountries = [
+        Preview_country(iso_3166_1: "DK", name: "Denmark"),
+        Preview_country(iso_3166_1: "FR", name: "France"),
+        Preview_country(iso_3166_1: "DE", name: "Germany"),
+        Preview_country(iso_3166_1: "NL", name: "Netherlands")
+    ]
+    
+    static let previewLanguages = [
+        Preview_language(english_name: "English", iso_639_1: "en", name: "English")
+    ]
+    
+    static let previewCast = [
+        Preview_people(
+            id: 2227,
+            department: "nil",
+            job: "nil",
+            original_name: "Nicole Kidman",
+            profile_path: "/m56BJJsW3uynaZDwtFCFeoDgH5o.jpg",
+            character: "Grace Margaret Mulligan",
+            known_for_department: "Acting"
+        ),
+        Preview_people(
+            id: 7569,
+            department: "nil",
+            job: "nil",
+            original_name: "Harriet Andersson",
+            profile_path: "/rFQNqEAyzAw5XAMeVPFZlcveNgF.jpg",
+            character: "Gloria",
+            known_for_department: "Acting"
+        ),
+        Preview_people(
+            id: 7570,
+            department: "nil",
+            job: "nil",
+            original_name: "Lauren Bacall",
+            profile_path: "/lpzzFF8cDAE9Lm5THFlUbDATaOn.jpg",
+            character: "Ma Ginger",
+            known_for_department: "Acting"
+        )
+    ]
+    
+    static let previewCrew = [
+        Preview_people(
+            id: 42,
+            department: "Writing",
+            job: "Screenplay",
+            original_name: "Lars von Trier",
+            profile_path: "/vyLqx52Fj5E5wN6gqJtqOyWIfa6.jpg",
+            character: nil,
+            known_for_department: "Directing"
+        ),
+        Preview_people(
+            id: 42,
+            department: "Writing",
+            job: "Director",
+            original_name: "Lars von Trier",
+            profile_path: "/vyLqx52Fj5E5wN6gqJtqOyWIfa6.jpg",
+            character: nil,
+            known_for_department: "Directing"
+        )
+    ]
+    
+    static let previewFilm = Preview_film(
+        backdrop_path: "/r3xsFBD1VTUusk393bBc7SsDUJe.jpg",
+        budget: 100000,
+        genres: previewGenres,
+        id: 553,
+        imdb_id: "tt0276919",
+        overview: "blah blah blah blah test code test code",
+        poster_path: "/lraVawavIXh5geMlVjpzCw9TGwR.jpg",
+        production_companies: previewCompanies,
+        production_countries: previewCountries,
+        original_title: "hi",
+        release_date: "2019-06-17",
+        spoken_languages: previewLanguages,
+        status: "Released",
+        title: "Dogville",
+        runtime: 178,
+        vote_average: 7.784
+    )
+    
+    static let previewCastCrew = Preview_cast_crew(
+        cast: previewCast,
+        crew: previewCrew
+    )
+    
+    static let previewFilmRating = Film_rating(
+        id: 553,
+        cinematography: 4.1,
+        editing: 3.5,
+        costume_makeup: 0.0,
+        lighting: 0.0,
+        staging: 0.0,
+        setting_props: 0.0,
+        narrativeRating: 0.0,
+        narrativeComment: "",
+        isWatched: 0,
+        whyWatch: ""
+    )
 
     static var previews: some View {
         FilmPage(
-            film: Preview_film(
-                backdrop_path: "/r3xsFBD1VTUusk393bBc7SsDUJe.jpg",budget: 100000,
-                genres: [
-                    Preview_genre(id:80, name:"Crime"),
-                    Preview_genre(id:18, name:"Drama"),
-                    Preview_genre(id:53, name:"Thriller")
-                ],
-                id: 553,
-                imdb_id: "tt0276919",
-                overview: "blah blah blah blah test code test code",
-                poster_path: "/lraVawavIXh5geMlVjpzCw9TGwR.jpg",
-                production_companies: [
-                    Preview_company(id:5975,logo_path:"/vvjgoKygWWYZvYyidT3RmOCq5If.png",name:"YLE", origin_country:"FI"),
-                    Preview_company(id:76,logo_path:"/nebkQYtQKhZyHJfh5v0oGpNbPzu.png",name:"Zentropa Entertainments", origin_country:"DK")
-                ],
-                production_countries: [
-                    Preview_country(iso_3166_1:"DK", name:"Denmark"),
-                    Preview_country(iso_3166_1:"FR", name:"France"),
-                    Preview_country(iso_3166_1:"DE", name:"Germany"),
-                    Preview_country(iso_3166_1:"NL", name:"Netherlands")
-                ],
-                original_title: "hi",
-                release_date: "2019-06-17",
-                spoken_languages: [
-                    Preview_language(english_name: "English", iso_639_1: "en", name: "English")
-                ],
-                status: "Released",
-                title: "Dogville", runtime: 178, vote_average: 7.784
-            ),
-            cast: Preview_cast_crew(
-                cast: [
-                    Preview_people(
-                        id: 2227,
-                        department:"nil",
-                        job:"nil",
-                        original_name: "Nicole Kidman",
-                        profile_path:"/m56BJJsW3uynaZDwtFCFeoDgH5o.jpg",
-                        character: "Grace Margaret Mulligan",
-                        known_for_department: "Acting"
-                    ),
-                    Preview_people(
-                        id: 7569,
-                        department:"nil",
-                        job:"nil",
-                        original_name: "Harriet Andersson",
-                        profile_path:"/rFQNqEAyzAw5XAMeVPFZlcveNgF.jpg",
-                        character: "Gloria",
-                        known_for_department: "Acting"
-                    ),
-                    Preview_people(
-                        id: 7570,
-                        department:"nil",
-                        job:"nil",
-                        original_name: "Lauren Bacall",
-                        profile_path:"/lpzzFF8cDAE9Lm5THFlUbDATaOn.jpg",
-                        character: "Ma Ginger",
-                        known_for_department: "Acting"
-                    ),
-
-                ],
-                crew: [
-                    Preview_people(
-                        id: 42,
-                        department: "Writing",
-                        job: "Screenplay",
-                        original_name: "Lars von Trier",
-                        profile_path: "/vyLqx52Fj5E5wN6gqJtqOyWIfa6.jpg",
-                        character:nil,
-                        known_for_department: "Directing"
-                    ),
-                    Preview_people(
-                        id: 42,
-                        department: "Writing",
-                        job: "Director",
-                        original_name: "Lars von Trier",
-                        profile_path: "/vyLqx52Fj5E5wN6gqJtqOyWIfa6.jpg",
-                        character:nil,
-                        known_for_department: "Directing"
-                    ),
-                    Preview_people(
-                        id: 42,
-                        department: "Writing",
-                        job: "Director",
-                        original_name: "Lars von Trier2",
-                        profile_path: "/vyLqx52Fj5E5wN6gqJtqOyWIfa6.jpg",
-                        character:nil,
-                        known_for_department: "Directing"
-                    ),
-                    Preview_people(
-                        id: 42,
-                        department: "Writing",
-                        job: "Director",
-                        original_name: "Lar von Trier3",
-                        profile_path: "/vyLqx52Fj5E5wN6gqJtqOyWIfa6.jpg",
-                        character:nil,
-                        known_for_department: "Directing"
-                    )
-                ]
-            ),
+            film: previewFilm,
+            cast: previewCastCrew,
             source: "library",
-            film_data: Film_rating(
-                id: 553,
-                cinematography: 4.1,
-                editing: 3.5,
-                costume_makeup: 0.0,
-                lighting: 0.0,
-                staging: 0.0,
-                setting_props: 0.0,
-                narrativeRating: 0.0,
-                narrativeComment: "",
-                isWatched: 0,
-                whyWatch: ""
-            ),
+            film_data: previewFilmRating,
             recs: similar
         )
     }
